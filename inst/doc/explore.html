@@ -304,11 +304,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Access Data and Metadata from ‘Microsoft’ ‘Power BI’ Documents</h1>
 <h4 class="author">Don Diproto</h4>
-<h4 class="date">16/5/2020</h4>
+<h4 class="date">21/10/2020</h4>
 
 
 
-<p>The ‘pbixr’ package enables one to access data and metadata from <a href="https://web.archive.org/web/20191225013754/https://powerbi.microsoft.com/en-us/why-power-bi/">‘Microsoft’ ‘Power BI’</a> documents: ‘Power Query M’ formulas and ‘Data Analysis Expressions’ (‘DAX’) queries and their properties, report layout and style, and data and data models.</p>
+<p>The ‘pbixr’ package enables one to extract ‘Power Query M’ formulas (<a href="https://docs.microsoft.com/en-us/power-query/" class="uri">https://docs.microsoft.com/en-us/power-query/</a>) ‘Data Analysis Expressions’ queries (‘DAX’, <a href="https://docs.microsoft.com/en-us/dax/" class="uri">https://docs.microsoft.com/en-us/dax/</a>) and their properties, report layout and style, and data and data models.</p>
 <p>‘Microsoft’ ‘Power BI’ is a big deal – more than 200,000 organisations in 205 countries were reported as using it in <a href="https://web.archive.org/web/20170906094058/https://powerbi.microsoft.com/en-us/blog/gartner-positions-microsoft-as-a-leader-in-bi-and-analytics-platforms-for-ten-consecutive-years/">February 16, 2017</a>.</p>
 <p>With extensive use of ‘Power BI’ and production of ‘.pbix’ files, managing and analysing ‘.pbix’ files can be challenging for individuals and organisations.</p>
 <p>The <code>pbixr</code> package in R has several functions that can help.</p>
@@ -324,7 +324,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <span id="cb1-7"><a href="#cb1-7"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(ggraph))</span>
 <span id="cb1-8"><a href="#cb1-8"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(igraph))</span>
 <span id="cb1-9"><a href="#cb1-9"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(imager))</span>
-<span id="cb1-10"><a href="#cb1-10"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(tidyr))</span></code></pre></div>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(tidyr))</span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="kw">suppressMessages</span>(<span class="kw">library</span>(formatR))</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>temp_dir &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">tempdir</span>(), <span class="st">&quot;vig&quot;</span>)</span>
 <span id="cb2-2"><a href="#cb2-2"></a><span class="cf">if</span> (<span class="op">!</span><span class="kw">dir.exists</span>(temp_dir)) {</span>
 <span id="cb2-3"><a href="#cb2-3"></a>    <span class="kw">dir.create</span>(temp_dir)</span>
@@ -332,38 +333,57 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <span id="cb2-5"><a href="#cb2-5"></a>sample_file_name &lt;-<span class="st"> &quot;sample_vig.pbix&quot;</span></span>
 <span id="cb2-6"><a href="#cb2-6"></a>path_file_sample &lt;-<span class="st"> </span><span class="kw">file.path</span>(temp_dir, sample_file_name)</span>
 <span id="cb2-7"><a href="#cb2-7"></a>parent_temp_dir &lt;-<span class="st"> </span><span class="kw">dirname</span>(temp_dir)</span>
-<span id="cb2-8"><a href="#cb2-8"></a>existing_file &lt;-<span class="st"> </span><span class="kw">list.files</span>(parent_temp_dir, <span class="dt">pattern =</span> sample_file_name, <span class="dt">recursive =</span> <span class="ot">TRUE</span>, </span>
-<span id="cb2-9"><a href="#cb2-9"></a>    <span class="dt">full.names =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb2-8"><a href="#cb2-8"></a>existing_file &lt;-<span class="st"> </span><span class="kw">list.files</span>(parent_temp_dir,</span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="dt">pattern =</span> sample_file_name, <span class="dt">recursive =</span> <span class="ot">TRUE</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>)</span>
 <span id="cb2-10"><a href="#cb2-10"></a><span class="cf">if</span> (<span class="kw">length</span>(existing_file) <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {</span>
-<span id="cb2-11"><a href="#cb2-11"></a>    url_pt1 &lt;-<span class="st"> &quot;https://github.com/KoenVerbeeck/PowerBI-Course/blob/&quot;</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a>    url_pt2 &lt;-<span class="st"> &quot;master/pbix/TopMovies.pbix?raw=true&quot;</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a>    url &lt;-<span class="st"> </span><span class="kw">paste0</span>(url_pt1, url_pt2)</span>
-<span id="cb2-14"><a href="#cb2-14"></a>    req &lt;-<span class="st"> </span><span class="kw">download.file</span>(url, <span class="dt">destfile =</span> path_file_sample, <span class="dt">mode =</span> <span class="st">&quot;wb&quot;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11"></a>   url_pt1 &lt;-<span class="st"> &quot;https://github.com/KoenVerbeeck/PowerBI-Course/blob/&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>   url_pt2 &lt;-<span class="st"> &quot;master/pbix/TopMovies.pbix?raw=true&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13"></a>   url &lt;-<span class="st"> </span><span class="kw">paste0</span>(url_pt1, url_pt2)</span>
+<span id="cb2-14"><a href="#cb2-14"></a>   req &lt;-<span class="st"> </span><span class="kw">download.file</span>(url, <span class="dt">destfile =</span> path_file_sample, <span class="dt">mode =</span> <span class="st">&quot;wb&quot;</span>)</span>
 <span id="cb2-15"><a href="#cb2-15"></a>} <span class="cf">else</span> {</span>
-<span id="cb2-16"><a href="#cb2-16"></a>    path_file_sample &lt;-<span class="st"> </span>existing_file[<span class="dv">1</span>]</span>
+<span id="cb2-16"><a href="#cb2-16"></a>   path_file_sample &lt;-<span class="st"> </span>existing_file[<span class="dv">1</span>]</span>
 <span id="cb2-17"><a href="#cb2-17"></a>}</span>
 <span id="cb2-18"><a href="#cb2-18"></a></span>
 <span id="cb2-19"><a href="#cb2-19"></a><span class="co"># Licence ----------------------------------------------------------------------</span></span>
 <span id="cb2-20"><a href="#cb2-20"></a><span class="co"># Licence associated with the sample .pbix file</span></span>
 <span id="cb2-21"><a href="#cb2-21"></a></span>
-<span id="cb2-22"><a href="#cb2-22"></a><span class="co"># MIT License Copyright (c) 2017 KoenVerbeeck Permission is hereby granted, free</span></span>
-<span id="cb2-23"><a href="#cb2-23"></a><span class="co"># of charge, to any person obtaining a copy of this software and associated</span></span>
-<span id="cb2-24"><a href="#cb2-24"></a><span class="co"># documentation files (the &#39;Software&#39;), to deal in the Software without</span></span>
-<span id="cb2-25"><a href="#cb2-25"></a><span class="co"># restriction, including without limitation the rights to use, copy, modify,</span></span>
-<span id="cb2-26"><a href="#cb2-26"></a><span class="co"># merge, publish, distribute, sublicense, and/or sell copies of the Software, and</span></span>
-<span id="cb2-27"><a href="#cb2-27"></a><span class="co"># to permit persons to whom the Software is furnished to do so, subject to the</span></span>
-<span id="cb2-28"><a href="#cb2-28"></a><span class="co"># following conditions: The above copyright notice and this permission notice</span></span>
-<span id="cb2-29"><a href="#cb2-29"></a><span class="co"># shall be included in all copies or substantial portions of the Software.  THE</span></span>
-<span id="cb2-30"><a href="#cb2-30"></a><span class="co"># SOFTWARE IS PROVIDED &#39;AS IS&#39;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,</span></span>
-<span id="cb2-31"><a href="#cb2-31"></a><span class="co"># INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A</span></span>
-<span id="cb2-32"><a href="#cb2-32"></a><span class="co"># PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR</span></span>
-<span id="cb2-33"><a href="#cb2-33"></a><span class="co"># COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER</span></span>
-<span id="cb2-34"><a href="#cb2-34"></a><span class="co"># IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN</span></span>
-<span id="cb2-35"><a href="#cb2-35"></a><span class="co"># CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span></span></code></pre></div>
+<span id="cb2-22"><a href="#cb2-22"></a><span class="co"># MIT License</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a><span class="co">#</span></span>
+<span id="cb2-24"><a href="#cb2-24"></a><span class="co"># Copyright (c) 2017 KoenVerbeeck</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="co">#</span></span>
+<span id="cb2-26"><a href="#cb2-26"></a><span class="co"># Permission is hereby granted, free of charge, to any person obtaining a copy</span></span>
+<span id="cb2-27"><a href="#cb2-27"></a><span class="co"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span></span>
+<span id="cb2-28"><a href="#cb2-28"></a><span class="co"># in the Software without restriction, including without limitation the rights</span></span>
+<span id="cb2-29"><a href="#cb2-29"></a><span class="co"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span></span>
+<span id="cb2-30"><a href="#cb2-30"></a><span class="co"># copies of the Software, and to permit persons to whom the Software is</span></span>
+<span id="cb2-31"><a href="#cb2-31"></a><span class="co"># furnished to do so, subject to the following conditions:</span></span>
+<span id="cb2-32"><a href="#cb2-32"></a><span class="co">#</span></span>
+<span id="cb2-33"><a href="#cb2-33"></a><span class="co"># The above copyright notice and this permission notice shall be included in all</span></span>
+<span id="cb2-34"><a href="#cb2-34"></a><span class="co"># copies or substantial portions of the Software.</span></span>
+<span id="cb2-35"><a href="#cb2-35"></a><span class="co">#</span></span>
+<span id="cb2-36"><a href="#cb2-36"></a><span class="co"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span></span>
+<span id="cb2-37"><a href="#cb2-37"></a><span class="co"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span></span>
+<span id="cb2-38"><a href="#cb2-38"></a><span class="co"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span></span>
+<span id="cb2-39"><a href="#cb2-39"></a><span class="co"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span></span>
+<span id="cb2-40"><a href="#cb2-40"></a><span class="co"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span></span>
+<span id="cb2-41"><a href="#cb2-41"></a><span class="co"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span></span>
+<span id="cb2-42"><a href="#cb2-42"></a><span class="co"># SOFTWARE.</span></span></code></pre></div>
 </div>
 <div id="analysis" class="section level1">
 <h1>Analysis</h1>
-<p>Several types of questions were explored with <code>pbixr</code>.</p>
+<p>Two broad areas of the sample were explored with <code>pbixr</code>:</p>
+<ul>
+<li><p>metadata</p>
+<ul>
+<li><p>sample contents, including images and embedded images</p></li>
+<li><p>queries, including Power Query M formulas and DAX, and associated characteristics</p></li>
+<li><p>sample layout, including position of visual containers, report names and filters</p></li>
+</ul></li>
+<li><p>data</p>
+<ul>
+<li>executing DAX and MDX queries to gather data from the sample and understand the data model</li>
+</ul></li>
+</ul>
 <div id="metadata" class="section level2">
 <h2>Metadata</h2>
 <div id="what-was-in-the-sample" class="section level3">
@@ -375,10 +395,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <span id="cb3-4"><a href="#cb3-4"></a>pbi_content_names &lt;-<span class="st"> </span>pbi_content<span class="op">$</span>Name</span>
 <span id="cb3-5"><a href="#cb3-5"></a><span class="co"># Identify exentsions</span></span>
 <span id="cb3-6"><a href="#cb3-6"></a>pbi_content_types &lt;-<span class="st"> </span><span class="kw">unique</span>(tools<span class="op">::</span><span class="kw">file_ext</span>(pbi_content_names))</span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="co"># Show content Make the size look pretty</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>biggest_file &lt;-<span class="st"> </span><span class="kw">max</span>(pbi_content<span class="op">$</span>Length)</span>
-<span id="cb3-9"><a href="#cb3-9"></a>pbi_content<span class="op">$</span>Length &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(pbi_content<span class="op">$</span>Length, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
-<span id="cb3-10"><a href="#cb3-10"></a>knitr<span class="op">::</span><span class="kw">kable</span>(pbi_content)</span></code></pre></div>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co"># Show content</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="co"># Make the size look pretty</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a>biggest_file &lt;-<span class="st"> </span><span class="kw">max</span>(<span class="kw">as.numeric</span>(<span class="kw">gsub</span>(<span class="st">&quot;[^0-9]*&quot;</span>,<span class="st">&quot;&quot;</span>,pbi_content<span class="op">$</span>Length)))</span>
+<span id="cb3-10"><a href="#cb3-10"></a>pbi_content<span class="op">$</span>Length &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(pbi_content<span class="op">$</span>Length, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11"></a>knitr<span class="op">::</span><span class="kw">kable</span>(pbi_content)</span></code></pre></div>
 <table>
 <colgroup>
 <col width="81%"></col>
@@ -491,74 +512,87 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <h3>What did the image in the sample look like?</h3>
 <p><code>f_extract_images</code> was used to extract the only identifiable stand-alone image (i.e. an image not embedded in another file) in the sample.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Search only for .png files</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>image_reg &lt;-<span class="st"> &quot;[.]png&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>  image_reg &lt;-<span class="st"> &quot;[.]png&quot;</span></span>
 <span id="cb4-3"><a href="#cb4-3"></a><span class="co"># Get the images</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>image_information &lt;-<span class="st"> </span><span class="kw">f_extract_images</span>(input_pbix, image_reg)</span>
-<span id="cb4-5"><a href="#cb4-5"></a>image_name &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*/&quot;</span>, <span class="st">&quot;&quot;</span>, image_information[[<span class="dv">2</span>]]<span class="op">$</span>Name)</span>
+<span id="cb4-4"><a href="#cb4-4"></a>  image_information &lt;-<span class="st"> </span><span class="kw">f_extract_images</span>(input_pbix, image_reg)</span>
+<span id="cb4-5"><a href="#cb4-5"></a>  image_name &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*/&quot;</span>, <span class="st">&quot;&quot;</span>, image_information[[<span class="dv">2</span>]]<span class="op">$</span>Name)</span>
 <span id="cb4-6"><a href="#cb4-6"></a><span class="co"># Plot the first image</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>im &lt;-<span class="st"> </span>imager<span class="op">::</span><span class="kw">load.image</span>(image_information[[<span class="dv">1</span>]])</span>
-<span id="cb4-8"><a href="#cb4-8"></a><span class="kw">plot</span>(im, <span class="dt">main =</span> image_name)</span></code></pre></div>
+<span id="cb4-7"><a href="#cb4-7"></a>  im &lt;-<span class="st"> </span>imager<span class="op">::</span><span class="kw">load.image</span>(image_information[[<span class="dv">1</span>]])</span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="kw">plot</span>(im, <span class="dt">main =</span> image_name)</span></code></pre></div>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAH4CAMAAACR9g9NAAAAkFBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY6AAA6ADo6AGY6OpA6ZpA6ZrY6kLY6kNtmAABmADpmAGZmOgBmkLZmkNtmtv+QOgCQOjqQOmaQZjqQtmaQtpCQttuQ29uQ2/+2ZgC2Zjq2kDq227a22/+2/7a2///bkDrbkGbbtmbb////tmb/25D/27b//7b//9v///9TObpNAAAACXBIWXMAAAsSAAALEgHS3X78AAAIAElEQVR4nO3bf3/aRACA8YOtReuEVYXNH6PqBIUsyft/d+YS6JjUT0LWo4Hn+f5Dmy5Nzqd3SSwNpZDCS5+AXobhoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPBQpfD4br176HAaDFF4HSOHrGV/8HMLrj9Vnf0/C6MdNWSzGv0yaLeX+k9XB1urfv/5zdrN52VN/frTwxSJUqh+Ah/gabstmQ/VBtPvkZvO4tf7g1cTwlyyGzybjj8VDmGeT0W9lNhstq7LT8p/QlK0/+TQL88et1b9flutg+EsWw2+roNG2nuPrmHi0rL6yDx9v/9Zh+ri1/ne5S/1Fa8I3i/pB+Kr1E+F3Ww1/BfZLfflHmB4s9V+ED99vmqV+t9Wl/gr8z83dLvHnr9Y3d7ut3txdgeZx7vfqcW5ZNo9zP5X/DR+f4r7bfN5a5j+E13+51F+55hp/qLokzB9v+q+J4Q8dh98t/tOXOZ+EDH/oOHz56V0IozdXN+ENT2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aFaw+f3qzKfhXCzOcfp6Fy6hI/ty+zNOU5H59IlfHa3aWb+fp+9tKemlNrDz0Yf3scZf3e01hv+gnWIVyzCbbkdr46+YPgL9jXxDH/BDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aHa42WTEI1XPfbVYLXGKxbz+nV7szl5Xw1Xa7z8fvXF6yn7aric8VDt8fKZ1/gr5F09VJ94Ye/Zz0Zn44yHMjxU++PcbLeuH9/dGf6CtccrFtPe+2qwOsTL3y5776uh8hoPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCt8fL7VZnPQrjZnL6vhqtL+Ni+zN6cvq+Gq0v47G7TzPxT99VwtYefjT68jzP+7mitN/wF6xCvWITbcjs+mvCGv2Te1UP1iRf2nv1sdDbOeCjDQ3W4q9+t68d3d4a/YO3xisW0974arA7x8rfL3vtqqLzGQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aHa42WTEI1XPfbVYLXGKxbz+nV7szl5Xw1Xa7z8fvXF6yn7aric8VDt8fKZ1/gr5F09VJ94Ye/zR3pRScJXj3Oj5ZM3d2eY8+kXFeoROt3cFYup4a/sCB0f5x5uDX9dR+j6OLd+9a3hr+kIXR7npvFl/cTznOEv9whfd1aGv9gjGB56BP8nDJThoQwPZXgow0MZHsrwUIaHMjyU4aG+Inw+C8dvwHxO6/DkW/2eTxZ/45h0GPUREo4j/tHDvNcY+oePv69d3/bevYOHecrvXpbbmCPpMOojJBxH/nZZZt8s+4yhf/j4zozsqV/SP5fi3TLdN688jH6tTj/lMJojJBzHNtZ+mPcZQ//w2d2m/olLpn5fd9JJH/9jpR1GPELicVQn32cM/cPHv7BIGr5awxLP+pgl7TDqH62k44jvh+wzhgHP+FrS6/x5Znwt1Tjq90edd8Ynv8bXkodPO4zU4bNJ/L7nvcbHNSbpXX1cwIr3qR/n0g5jfzFJNI6me68xDPw5fpT0UnK+5/hE41jXf0czP+9zvC6a4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUP8CE+VN/soEBMYAAAAASUVORK5CYII=" /></p>
+<p>In this case, there was an image that was white.</p>
 </div>
 <div id="what-did-an-image-embedded-in-a-.css-file-in-the-sample-look-like" class="section level3">
 <h3>What did an image embedded in a .css file in the sample look like?</h3>
 <p>The sample included custom visuals, one of which contained an image. <code>f_get_pbix_fir</code>, the basis of <code>f_extract_images</code>, was used to help extract the image. This image appeared in the ‘Visualisations’ section of ‘Power BI’.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Get the byte sequence of a first-level file.  The string is too long to fit</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="co"># nicely for this vignette so I will break it and paste it together.</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>variable_pt1 &lt;-<span class="st"> &quot;Report/CustomVisuals/PBI_CV_9053509D_D461_463A_B485_&quot;</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>variable_pt2 &lt;-<span class="st"> &quot;CE9F6AB0F13C/resources/PBI_CV_9053509D_D461_463A_B485&quot;</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>variable_pt3 &lt;-<span class="st"> &quot;_CE9F6AB0F13C.pbiviz.json&quot;</span></span>
-<span id="cb5-6"><a href="#cb5-6"></a>variable &lt;-<span class="st"> </span><span class="kw">paste0</span>(variable_pt1, variable_pt2, variable_pt3)</span>
-<span id="cb5-7"><a href="#cb5-7"></a>raw_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">f_get_pbix_fir</span>(path_file_sample, variable)</span>
-<span id="cb5-8"><a href="#cb5-8"></a></span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="co"># Write to a temporary file</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a>temp_file_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">tempdir</span>(), <span class="st">&quot;pbiviz_1&quot;</span>)</span>
-<span id="cb5-11"><a href="#cb5-11"></a>zz &lt;-<span class="st"> </span><span class="kw">file</span>(temp_file_<span class="dv">2</span>, <span class="st">&quot;wb&quot;</span>)</span>
-<span id="cb5-12"><a href="#cb5-12"></a><span class="kw">writeBin</span>(raw_img_viewer_visual, zz)</span>
-<span id="cb5-13"><a href="#cb5-13"></a><span class="kw">close</span>(zz)</span>
-<span id="cb5-14"><a href="#cb5-14"></a></span>
-<span id="cb5-15"><a href="#cb5-15"></a><span class="co"># Read temporary file back in</span></span>
-<span id="cb5-16"><a href="#cb5-16"></a>char_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">readLines</span>(temp_file_<span class="dv">2</span>, <span class="dt">warn =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb5-17"><a href="#cb5-17"></a></span>
-<span id="cb5-18"><a href="#cb5-18"></a><span class="co"># Get image data from the relvant line</span></span>
-<span id="cb5-19"><a href="#cb5-19"></a>image_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;);}&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;.*data:image/png;base64,&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">grep</span>(<span class="st">&quot;data:image&quot;</span>, </span>
-<span id="cb5-20"><a href="#cb5-20"></a>    char_img_viewer_visual, <span class="dt">value =</span> <span class="ot">TRUE</span>)))</span>
-<span id="cb5-21"><a href="#cb5-21"></a></span>
-<span id="cb5-22"><a href="#cb5-22"></a><span class="co"># Decode</span></span>
-<span id="cb5-23"><a href="#cb5-23"></a>raw_image_img_viewer_visual &lt;-<span class="st"> </span>RCurl<span class="op">::</span><span class="kw">base64Decode</span>(image_img_viewer_visual, <span class="dt">mode =</span> <span class="st">&quot;raw&quot;</span>)</span>
-<span id="cb5-24"><a href="#cb5-24"></a></span>
-<span id="cb5-25"><a href="#cb5-25"></a><span class="co"># Write to a temporary file</span></span>
-<span id="cb5-26"><a href="#cb5-26"></a>temp_file_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">tempdir</span>(), <span class="st">&quot;pbiviz_2.png&quot;</span>)</span>
-<span id="cb5-27"><a href="#cb5-27"></a>zz &lt;-<span class="st"> </span><span class="kw">file</span>(temp_file_<span class="dv">3</span>, <span class="st">&quot;wb&quot;</span>)</span>
-<span id="cb5-28"><a href="#cb5-28"></a><span class="kw">writeBin</span>(raw_image_img_viewer_visual, zz)</span>
-<span id="cb5-29"><a href="#cb5-29"></a><span class="kw">close</span>(zz)</span>
-<span id="cb5-30"><a href="#cb5-30"></a></span>
-<span id="cb5-31"><a href="#cb5-31"></a><span class="co"># Plot Get the name of custom visual for the main title</span></span>
-<span id="cb5-32"><a href="#cb5-32"></a>plot_title &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Visual: &#39;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;.*:</span><span class="ch">\&quot;</span><span class="st">&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\&quot;</span><span class="st">, </span><span class="ch">\&quot;</span><span class="st">displayName.*&quot;</span>, <span class="st">&quot;&quot;</span>, </span>
-<span id="cb5-33"><a href="#cb5-33"></a>    char_img_viewer_visual)), <span class="st">&quot;&#39;&quot;</span>)</span>
-<span id="cb5-34"><a href="#cb5-34"></a><span class="co"># Load the image and create the plot</span></span>
-<span id="cb5-35"><a href="#cb5-35"></a>load_image_img_viewer_visual &lt;-<span class="st"> </span>imager<span class="op">::</span><span class="kw">load.image</span>(temp_file_<span class="dv">3</span>)</span>
-<span id="cb5-36"><a href="#cb5-36"></a><span class="kw">plot</span>(load_image_img_viewer_visual, <span class="dt">main =</span> plot_title)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Get the byte sequence of a first-level file.</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co"># The string is too long to fit nicely for this vignette so I will break it</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co"># and paste it together.</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  variable_pt1 &lt;-<span class="st"> &quot;Report/CustomVisuals/PBI_CV_9053509D_D461_463A_B485_&quot;</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>  variable_pt2 &lt;-<span class="st"> &quot;CE9F6AB0F13C/resources/PBI_CV_9053509D_D461_463A_B485&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>  variable_pt3 &lt;-<span class="st"> &quot;_CE9F6AB0F13C.pbiviz.json&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>  variable &lt;-<span class="st"> </span><span class="kw">paste0</span>(variable_pt1, variable_pt2, variable_pt3)</span>
+<span id="cb5-8"><a href="#cb5-8"></a>  raw_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">f_get_pbix_fir</span>(path_file_sample, variable)</span>
+<span id="cb5-9"><a href="#cb5-9"></a></span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="co"># Write to a temporary file</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a>  temp_file_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">tempdir</span>(), <span class="st">&quot;pbiviz_1&quot;</span>)</span>
+<span id="cb5-12"><a href="#cb5-12"></a>  zz &lt;-<span class="st"> </span><span class="kw">file</span>(temp_file_<span class="dv">2</span>, <span class="st">&quot;wb&quot;</span>)</span>
+<span id="cb5-13"><a href="#cb5-13"></a>  <span class="kw">writeBin</span>(raw_img_viewer_visual, zz)</span>
+<span id="cb5-14"><a href="#cb5-14"></a>  <span class="kw">close</span>(zz)</span>
+<span id="cb5-15"><a href="#cb5-15"></a></span>
+<span id="cb5-16"><a href="#cb5-16"></a><span class="co"># Read temporary file back in</span></span>
+<span id="cb5-17"><a href="#cb5-17"></a>  char_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">readLines</span>(temp_file_<span class="dv">2</span>, <span class="dt">warn =</span>  <span class="ot">FALSE</span>)</span>
+<span id="cb5-18"><a href="#cb5-18"></a></span>
+<span id="cb5-19"><a href="#cb5-19"></a><span class="co"># Get image data from the relvant line</span></span>
+<span id="cb5-20"><a href="#cb5-20"></a>  image_img_viewer_visual &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;);}&quot;</span>, <span class="st">&quot;&quot;</span>,</span>
+<span id="cb5-21"><a href="#cb5-21"></a>  <span class="kw">gsub</span>(<span class="st">&quot;.*data:image/png;base64,&quot;</span>,</span>
+<span id="cb5-22"><a href="#cb5-22"></a>  <span class="st">&quot;&quot;</span>, <span class="kw">grep</span>(<span class="st">&quot;data:image&quot;</span>, char_img_viewer_visual, <span class="dt">value =</span> <span class="ot">TRUE</span>)))</span>
+<span id="cb5-23"><a href="#cb5-23"></a></span>
+<span id="cb5-24"><a href="#cb5-24"></a><span class="co"># Decode</span></span>
+<span id="cb5-25"><a href="#cb5-25"></a>  raw_image_img_viewer_visual &lt;-<span class="st"> </span>RCurl<span class="op">::</span><span class="kw">base64Decode</span>(image_img_viewer_visual,</span>
+<span id="cb5-26"><a href="#cb5-26"></a>  <span class="dt">mode =</span> <span class="st">&quot;raw&quot;</span>)</span>
+<span id="cb5-27"><a href="#cb5-27"></a></span>
+<span id="cb5-28"><a href="#cb5-28"></a><span class="co"># Write to a temporary file</span></span>
+<span id="cb5-29"><a href="#cb5-29"></a>  temp_file_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">tempdir</span>(), <span class="st">&quot;pbiviz_2.png&quot;</span>)</span>
+<span id="cb5-30"><a href="#cb5-30"></a>  zz &lt;-<span class="st"> </span><span class="kw">file</span>(temp_file_<span class="dv">3</span>, <span class="st">&quot;wb&quot;</span>)</span>
+<span id="cb5-31"><a href="#cb5-31"></a>  <span class="kw">writeBin</span>(raw_image_img_viewer_visual, zz)</span>
+<span id="cb5-32"><a href="#cb5-32"></a>  <span class="kw">close</span>(zz)</span>
+<span id="cb5-33"><a href="#cb5-33"></a></span>
+<span id="cb5-34"><a href="#cb5-34"></a><span class="co"># Plot</span></span>
+<span id="cb5-35"><a href="#cb5-35"></a>  <span class="co"># Get the name of custom visual for the main title</span></span>
+<span id="cb5-36"><a href="#cb5-36"></a>    plot_title &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Visual: &#39;&quot;</span>,</span>
+<span id="cb5-37"><a href="#cb5-37"></a>    <span class="kw">gsub</span>(<span class="st">&quot;.*:</span><span class="ch">\&quot;</span><span class="st">&quot;</span>, <span class="st">&quot;&quot;</span>,</span>
+<span id="cb5-38"><a href="#cb5-38"></a>    <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\&quot;</span><span class="st">, </span><span class="ch">\&quot;</span><span class="st">displayName.*&quot;</span>, <span class="st">&quot;&quot;</span>, char_img_viewer_visual)), <span class="st">&quot;&#39;&quot;</span>)</span>
+<span id="cb5-39"><a href="#cb5-39"></a>  <span class="co"># Load the image and create the plot</span></span>
+<span id="cb5-40"><a href="#cb5-40"></a>    load_image_img_viewer_visual &lt;-<span class="st"> </span>imager<span class="op">::</span><span class="kw">load.image</span>(temp_file_<span class="dv">3</span>)</span>
+<span id="cb5-41"><a href="#cb5-41"></a>    <span class="kw">plot</span>(load_image_img_viewer_visual, <span class="dt">main =</span> plot_title)</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /></p>
 </div>
 <div id="what-power-query-m-formulas-were-used-in-the-sample" class="section level3">
 <h3>What Power Query M formulas were used in the sample?</h3>
 <p>‘DataMashup’ was a compressed file that included the Power Query M formulas in the sample. <code>f_get_dama_m</code> was used to extract them.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># Get the query</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a>m_query &lt;-<span class="st"> </span><span class="kw">f_get_dama_m</span>(input_pbix)</span>
-<span id="cb6-3"><a href="#cb6-3"></a><span class="co">#&gt; Error in f_get_dama_m(input_pbix): argument &quot;remove_temp&quot; is missing, with no default</span></span>
-<span id="cb6-4"><a href="#cb6-4"></a><span class="co"># Show the first ten lines of the query</span></span>
-<span id="cb6-5"><a href="#cb6-5"></a>top_m &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="kw">head</span>(m_query, <span class="dv">10</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb6-6"><a href="#cb6-6"></a><span class="co">#&gt; Error in head(m_query, 10): object &#39;m_query&#39; not found</span></span></code></pre></div>
+<span id="cb6-2"><a href="#cb6-2"></a>m_query &lt;-<span class="st"> </span><span class="kw">f_get_dama_m</span>(input_pbix, <span class="dt">remove_temp =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="co"># Show the first ten lines of the query</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>top_m &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="kw">head</span>(m_query, <span class="dv">10</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>The first ten steps of one of the Power Query M formulas looked like this:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">cat</span>(top_m)</span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt; Error in cat(top_m): object &#39;top_m&#39; not found</span></span></code></pre></div>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt; section Section1;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co">#&gt;  </span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co">#&gt;  shared TopMovies = let</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt;      Source = Excel.Workbook(File.Contents(&quot;D:\SQLServer_Community\Power BI Open Source Training\Top250Movies.xlsx&quot;), null, true),</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt;      MovieList_Sheet = Source{[Item=&quot;MovieList&quot;,Kind=&quot;Sheet&quot;]}[Data],</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt;      #&quot;Changed Type&quot; = Table.TransformColumnTypes(MovieList_Sheet,{{&quot;Column1&quot;, type text}}),</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt;      #&quot;Promoted Headers&quot; = Table.PromoteHeaders(#&quot;Changed Type&quot;, [PromoteAllScalars=true]),</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt;      #&quot;Split on Point&quot; = Table.SplitColumn(#&quot;Promoted Headers&quot;,&quot;Movies&quot;,Splitter.SplitTextByEachDelimiter({&quot;.&quot;}, QuoteStyle.Csv, false),{&quot;Rank&quot;, &quot;Title&quot;}),</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt;      #&quot;Changed Type1&quot; = Table.TransformColumnTypes(#&quot;Split on Point&quot;,{{&quot;Rank&quot;, Int64.Type}, {&quot;Title&quot;, type text}}),</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="co">#&gt;      #&quot;Trimmed Text&quot; = Table.TransformColumns(#&quot;Changed Type1&quot;,{{&quot;Title&quot;, Text.Trim}}),</span></span></code></pre></div>
 <p>The ‘DataMashup’ file also included an .xml file, which contained metadata associated with the Power Query M formulas. <code>f_get_dama</code>, <code>f_get_dama_index</code>, <code>f_get_dama_file</code>, <code>f_get_dama_xml_details</code> and <code>f_get_dama_xml</code> were used to access the .xml file in the DataMashup file and <code>f_get_dama_xml_data</code> was used to get the metadata of the Power Query M formulas.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Get details of .xml files included in the DataMashup file</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a>xml_details &lt;-<span class="st"> </span><span class="kw">f_get_dama_xml_details</span>(input_pbix)</span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="co"># Identify the start and end bytes of the .xml file we want from the DataMashup</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a><span class="co"># file</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>xml_start &lt;-<span class="st"> </span>(xml_details[[<span class="dv">1</span>]][<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co"># Identify the start and end bytes of the .xml file we want from the</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co"># DataMashup file</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>xml_start &lt;-<span class="st"> </span>(xml_details[[<span class="dv">1</span>]][<span class="dv">1</span>] <span class="op">/</span><span class="st"> </span><span class="dv">2</span>) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
 <span id="cb8-6"><a href="#cb8-6"></a>xml_end &lt;-<span class="st"> </span>xml_details[[<span class="dv">3</span>]][<span class="dv">1</span>]</span>
 <span id="cb8-7"><a href="#cb8-7"></a><span class="co"># Get the desired .xml file from DataMashup file</span></span>
 <span id="cb8-8"><a href="#cb8-8"></a>input_xml &lt;-<span class="st"> </span><span class="kw">f_get_dama_xml</span>(input_pbix, xml_start, xml_end)</span>
@@ -605,8 +639,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="what-metadata-existed-for-each-power-query-m-formula-in-the-sample" class="section level3">
 <h3>What metadata existed for each Power Query M formula in the sample?</h3>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># Show content of first query</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>show_first_query &lt;-<span class="st"> </span>get_xml_data[[<span class="dv">2</span>]] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(query <span class="op">==</span><span class="st"> &quot;Section1/Actors%20Bridge&quot;</span>)</span>
-<span id="cb10-3"><a href="#cb10-3"></a>knitr<span class="op">::</span><span class="kw">kable</span>(show_first_query)</span></code></pre></div>
+<span id="cb10-2"><a href="#cb10-2"></a>show_first_query &lt;-<span class="st"> </span>get_xml_data[[<span class="dv">2</span>]] <span class="op">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="st">  </span><span class="kw">filter</span>(query <span class="op">==</span><span class="st"> &quot;Section1/Actors%20Bridge&quot;</span>)</span>
+<span id="cb10-4"><a href="#cb10-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(show_first_query)</span></code></pre></div>
 <table>
 <colgroup>
 <col width="1%"></col>
@@ -672,8 +707,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="what-steps-existed-for-each-power-query-m-formula" class="section level3">
 <h3>What steps existed for each Power Query M formula?</h3>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># Show content of first query</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">data.frame</span>(<span class="dt">step =</span> <span class="kw">grep</span>(<span class="st">&quot;Section1/Actors%20Bridge&quot;</span>, get_xml_data[[<span class="dv">3</span>]], </span>
-<span id="cb11-3"><a href="#cb11-3"></a>    <span class="dt">value =</span> <span class="ot">TRUE</span>)))</span></code></pre></div>
+<span id="cb11-2"><a href="#cb11-2"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">data.frame</span>(<span class="dt">step =</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">grep</span>(<span class="st">&quot;Section1/Actors%20Bridge&quot;</span>, get_xml_data[[<span class="dv">3</span>]], <span class="dt">value =</span> <span class="ot">TRUE</span>)))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -725,46 +760,80 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <h3>What were the report names of the sample?</h3>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>computer_name &lt;-<span class="st"> </span>get_layout<span class="op">$</span>sections<span class="op">$</span>name</span>
 <span id="cb13-2"><a href="#cb13-2"></a>human_name &lt;-<span class="st"> </span>get_layout<span class="op">$</span>sections<span class="op">$</span>displayName</span>
-<span id="cb13-3"><a href="#cb13-3"></a>names &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">computer_name =</span> computer_name, <span class="dt">human_name =</span> human_name)</span>
-<span id="cb13-4"><a href="#cb13-4"></a>names</span>
-<span id="cb13-5"><a href="#cb13-5"></a><span class="co">#&gt;     computer_name</span></span>
-<span id="cb13-6"><a href="#cb13-6"></a><span class="co">#&gt; 1   ReportSection</span></span>
-<span id="cb13-7"><a href="#cb13-7"></a><span class="co">#&gt; 2  ReportSection2</span></span>
-<span id="cb13-8"><a href="#cb13-8"></a><span class="co">#&gt; 3  ReportSection1</span></span>
-<span id="cb13-9"><a href="#cb13-9"></a><span class="co">#&gt; 4  ReportSection3</span></span>
-<span id="cb13-10"><a href="#cb13-10"></a><span class="co">#&gt; 5  ReportSection5</span></span>
-<span id="cb13-11"><a href="#cb13-11"></a><span class="co">#&gt; 6  ReportSection4</span></span>
-<span id="cb13-12"><a href="#cb13-12"></a><span class="co">#&gt; 7  ReportSection6</span></span>
-<span id="cb13-13"><a href="#cb13-13"></a><span class="co">#&gt; 8  ReportSection9</span></span>
-<span id="cb13-14"><a href="#cb13-14"></a><span class="co">#&gt; 9  ReportSection7</span></span>
-<span id="cb13-15"><a href="#cb13-15"></a><span class="co">#&gt; 10 ReportSection8</span></span>
-<span id="cb13-16"><a href="#cb13-16"></a><span class="co">#&gt;                  human_name</span></span>
-<span id="cb13-17"><a href="#cb13-17"></a><span class="co">#&gt; 1         OverviewTopMovies</span></span>
-<span id="cb13-18"><a href="#cb13-18"></a><span class="co">#&gt; 2           AnalysisByGenre</span></span>
-<span id="cb13-19"><a href="#cb13-19"></a><span class="co">#&gt; 3           AnalysisByRated</span></span>
-<span id="cb13-20"><a href="#cb13-20"></a><span class="co">#&gt; 4                Clustering</span></span>
-<span id="cb13-21"><a href="#cb13-21"></a><span class="co">#&gt; 5                TimeSlicer</span></span>
-<span id="cb13-22"><a href="#cb13-22"></a><span class="co">#&gt; 6  Grouping,CondForm&amp;others</span></span>
-<span id="cb13-23"><a href="#cb13-23"></a><span class="co">#&gt; 7                   Binning</span></span>
-<span id="cb13-24"><a href="#cb13-24"></a><span class="co">#&gt; 8      Numericslicer+Matrix</span></span>
-<span id="cb13-25"><a href="#cb13-25"></a><span class="co">#&gt; 9                       DAX</span></span>
-<span id="cb13-26"><a href="#cb13-26"></a><span class="co">#&gt; 10            QuickMeasures</span></span></code></pre></div>
+<span id="cb13-3"><a href="#cb13-3"></a>reportNames &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">computer_name =</span> computer_name,</span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="dt">human_name =</span> human_name)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>knitr<span class="op">::</span><span class="kw">kable</span>(reportNames)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">computer_name</th>
+<th align="left">human_name</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ReportSection</td>
+<td align="left">OverviewTopMovies</td>
+</tr>
+<tr class="even">
+<td align="left">ReportSection2</td>
+<td align="left">AnalysisByGenre</td>
+</tr>
+<tr class="odd">
+<td align="left">ReportSection1</td>
+<td align="left">AnalysisByRated</td>
+</tr>
+<tr class="even">
+<td align="left">ReportSection3</td>
+<td align="left">Clustering</td>
+</tr>
+<tr class="odd">
+<td align="left">ReportSection5</td>
+<td align="left">TimeSlicer</td>
+</tr>
+<tr class="even">
+<td align="left">ReportSection4</td>
+<td align="left">Grouping,CondForm&amp;others</td>
+</tr>
+<tr class="odd">
+<td align="left">ReportSection6</td>
+<td align="left">Binning</td>
+</tr>
+<tr class="even">
+<td align="left">ReportSection9</td>
+<td align="left">Numericslicer+Matrix</td>
+</tr>
+<tr class="odd">
+<td align="left">ReportSection7</td>
+<td align="left">DAX</td>
+</tr>
+<tr class="even">
+<td align="left">ReportSection8</td>
+<td align="left">QuickMeasures</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the human readable names of a report identified in the table above didn’t include white spaces. When viewed in ‘Power BI’, for example, the first report was called ‘Overview Top Movies’ not ‘OverviewTopMovies’.</p>
 </div>
 <div id="which-reports-included-filters-in-the-sample" class="section level3">
 <h3>Which reports included filters in the sample?</h3>
+<p>This code was used to identify filters affecting a visual.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>json_sect &lt;-<span class="st"> </span>get_layout<span class="op">$</span>sections</span>
 <span id="cb14-2"><a href="#cb14-2"></a>visual_containers &lt;-<span class="st"> </span>json_sect<span class="op">$</span>visualContainers</span>
-<span id="cb14-3"><a href="#cb14-3"></a>filter_index &lt;-<span class="st"> </span><span class="kw">which</span>(<span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="kw">lapply</span>(<span class="kw">lapply</span>(visual_containers, <span class="cf">function</span>(x) <span class="kw">colnames</span>(x)), </span>
-<span id="cb14-4"><a href="#cb14-4"></a>    <span class="cf">function</span>(z) <span class="kw">grep</span>(<span class="st">&quot;filters&quot;</span>, z)), length)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb14-3"><a href="#cb14-3"></a>filter_index &lt;-<span class="st"> </span><span class="kw">which</span>(<span class="kw">unlist</span>(<span class="kw">lapply</span>(<span class="kw">lapply</span>(<span class="kw">lapply</span>(visual_containers,</span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="cf">function</span>(x)<span class="kw">colnames</span>(x)), <span class="cf">function</span>(z) <span class="kw">grep</span>(<span class="st">&quot;filters&quot;</span>, z)), length)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
 <span id="cb14-5"><a href="#cb14-5"></a>json_sect<span class="op">$</span>displayName[filter_index]</span>
 <span id="cb14-6"><a href="#cb14-6"></a><span class="co">#&gt; [1] &quot;AnalysisByGenre&quot;         </span></span>
 <span id="cb14-7"><a href="#cb14-7"></a><span class="co">#&gt; [2] &quot;Grouping,CondForm&amp;others&quot;</span></span></code></pre></div>
+<p>On the ‘Analysis By Genre’ report, for example, ‘Music (’Genre’)’ was exlcuded from the ‘Count of Title By Genre’ visual.</p>
 </div>
 <div id="where-were-all-the-visual-containers-positioned-in-the-first-report-of-the-sample" class="section level3">
 <h3>Where were all the visual containers positioned in the first report of the sample?</h3>
+<p>This code was used to show the top left corner of each visual container on a report.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>contain_df &lt;-<span class="st"> </span>visual_containers[[<span class="dv">1</span>]]</span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="kw">plot</span>(contain_df<span class="op">$</span>x, contain_df<span class="op">$</span>y <span class="op">*</span><span class="st"> </span><span class="dv">-1</span>, <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;Sheet: &quot;</span>, <span class="kw">as.character</span>(names[<span class="dv">3</span>, </span>
-<span id="cb15-3"><a href="#cb15-3"></a>    <span class="dv">2</span>])), <span class="dt">sub =</span> <span class="st">&quot;Top-left corner of box&quot;</span>, <span class="dt">pch =</span> <span class="dv">3</span>)</span></code></pre></div>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="kw">plot</span>(contain_df<span class="op">$</span>x, contain_df<span class="op">$</span>y <span class="op">*</span><span class="st"> </span><span class="dv">-1</span>,</span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;Sheet: &quot;</span>, <span class="kw">as.character</span>(names[<span class="dv">3</span>, <span class="dv">2</span>])),</span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="dt">sub =</span> <span class="st">&quot;Top-left corner of box&quot;</span>, <span class="dt">pch =</span> <span class="dv">3</span>)</span></code></pre></div>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAH4CAMAAACR9g9NAAAA0lBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY6AAA6ADo6AGY6OgA6OmY6OpA6ZmY6ZpA6ZrY6kNtmAABmADpmAGZmOgBmOpBmZgBmZjpmZmZmkJBmkLZmkNtmtpBmtrZmtttmtv+QOgCQOjqQOmaQZgCQZjqQZmaQZpCQkDqQkJCQtmaQtpCQttuQ29uQ2/+2ZgC2Zjq2kGa2ttu225C22/+2/7a2/9u2///bkDrbtmbbtpDb25Db2//b/7bb/9vb////tmb/tpD/25D/27b//7b//9v///8+nC5XAAAACXBIWXMAAAsSAAALEgHS3X78AAAPOklEQVR4nO2dC5vaxhlGhbMLvmwbsJ3WvQWcpG6bGtzG6RK39hKM9P//UuciATLaXYFGi0bvOY8Ty2L0SXA0N11mkgwkSc59AHAeEC8K4kVBvCiIFwXxoiBeFMSLgnhREC8K4kVBvCiIFwXxoiBeFMSLgnhREC8K4kVBvCiIFwXxoiBeFMSLgnhRIhb/+WWS/PYmS2ePrm9Lkr6b7v9rlgyrUm0mBxH2V20micXsqrziam+j8o58osubrMPEK97//MM7xS+SfR/rUVKZtEL84Y6SZCvyYMWXO/KJEN8O69HlzWejzIj/6WVyYdSl/xolg2+z7YLJ4ebM2GldJq+sH7PBP0bJxXsTwpQZF3Mr/j/27Fkl4+zXp4n9yG20v5ytd4n8CrvvPILf0d7+f0gGf0Z8S6xHg2/tT+t+dfu7m2xnGW8XvhBvz5DRcG8Dn3Mvb2yKpTklFoP5/qr9ZX+ebRMV4vMkn7z4Yv/5DhDfDu7nffbe/j3OVkaLUfPe6dgulEvg9WjoqgW3wS+5l7XTZ7dxH1q9drVfVSw7j4N5EaEo6n2DYV3saG//j+ameEF8S6TvzI9vi/rB3NWoqyQXtF0oi7f51f633SBLP/z1aeLFp7PLj5OhO5u++uP/Mr+qWPbxLopEfsXFP+0x+AhuR3v7H1LHt8uHl8nU5eIa4rcl/HaDz5OLf3/Mc3y2HPx9NLYhfyjOhfKy2XyaJ7IrPk9snVJEQPwDskyGN+liT7wrai3bhZJ406ZP8iIi32CZfJ39MsrNmo/NmWJJv0+mRcNgt5z60jxxpYVPbwsQH2FX1Ps9UdS3iBe55zFvXH2xsG3cLW0WzRYHRUQu3uRos8H+qt1yki/liXzEZbJL4na03S2Nu3bJO2M78em7kb/Osl0wJ8fwoxfvimpXTmw3MI2EwZ+WRZZeuMbah6dFD+96t+yreFseLHwpnpf9wyKC29HNbv+mO/cHivpIWB5cgzk1URQgPueuC4DHJYoDxHuWyeD+vFwrUSQgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvShPxCXSZFsU32BbaBvGiIF4UxIuCeFEQLwriRUG8KA8nnvOgUyBelMbit4MG3bct4jtFU/HpzI8FsDoc0gXxXaap+M2L69Lf2d7Nmb0w9e4MwMNBjhelcR2fj/ZFHR8ZtOpFQbwoXLkTBfGiIF4UxIuCeFEQLwriRUG8KIgXBfGiIF4UxIuCeFEQLwriRUG8KIgXBfGiIF4UxIuCeFEQLwriRUG8KIgXBfGiIF4UxIuCeFEQLwriRUG8KIgXBfGiIF4UxIuCeFEQL0pj8bUHMYZO0VQ8Q5pGSlPxFYMY37It4jsFOV6UxnU8gxjHycO06hmvvnM8XHcO6Z3i4bpziO8UNO5EoTsnysPleOgULXTnaMLHADdpREG8KIiP6EBDgviIDjQkjbtzk7wld3gFJ5rfM5oDPYXbvlzjHJ/Oxidv2xGiOdBTaE18tnk+P3nb89P7rmd74lvZ9kGJ5kBPAfG3E82BHstdxVkY8cuqej6a3zOaAz2FdnM84jsL4kWhjocSiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFURd/5EFG8Z1qgfg2k3cYxLeZvMMgvs3kHUZa/JHDYfRq9Axp8Rk5/sSPs+hnoUL8SR/HP4gx4k/6+Jhhy7sJ4k/6OP4cL0vjOr72LFTQKdRb9bIgXhT17pwsNO5EUe/OyUKOF6WF7hyzUMUArXpREC9KiO7cYE7jLjpCNO7stDSIj4ww3bnFEPGREag7t/zqCeKjIkB3zk1SsIx43jlJaNWLgnhRwohnTproQLwoiBeFOl4UxIuCeFEQLwriRUG8KIgXBfGi1BCfP05Z+dJEg9BwVurkePuETfjQcFZqFfWb5/PwoeGsUMeLgnhRaouvvAHXJDScFcRHdKAhQXxEBxoS6viIDjQk6uJl3+xVF2+J5kBDUkf85puDQQ8ChO4O0RxoSGpdsv3ud8PwobtDNAcakno3afp9rT6aAw0JOV4U6nhRaNWLgnhREC8K4kWp9wTOhFZ936iZ41eJG9QsZGg4K/WL+nSWJNPDFAxbHic1xfthDCvGNGMQ40ipWccfas1h2PJICTTOHTk+NuqIXz+e3966YxaqOKkh3mZq+0pFRaZuEhrOSg3xy+3MA8e9PIf4LlMnx7+eu2dsq3M83bk4qVXHjxLjfFFZx9O4i5Q6T+Ac9tR20J2LlFrif75dPTk+UuoU9Yu72nbMQhUn9a7c3VXYnxoazgr340VpPAaOafKPF3TnoqNejl/YB+uXVU9j2MbdwlhfX9G4i4oj6vjKmt6uXI3pzkVHLfF+2Ktl1ZW7ojtHjo+MekW9ffomqX7ubjOx5ismoUJ8p6FVL8px4lcVD92dGhrOShjxzEkTHYgXBfGiUMeLgnhREC8K/XhR6olfMUNF36j5CtUxRXzN0HBWeAJHlCPuxwcO3R2iOdCQ1Czqe13HR3OgIaFVH9GBhgTxER1oSOq9UNHfol72HQByfEQHGhLER3SgIaknftnbot4SzYGGpF537vl8Nax+rv700N0hmgMNSd0rd/5PyNBwVuo9V/96bv6snyC+P9Sr443zVXLsBCWI7zK06kVp+u7c6aHhrBzzmjTj3PUI7seLQh0vCs/cicIzd6JQx4vCM3ei8MydKLTqRWksnmHL4+SIwY8qL9wxiHGkNB3ujGHLI6XpTRpyfKQ0zfHMQhUpTev400PDWaE7JwrdOVHq3p2bZktmoeoTdZ+rz9wTl4cJ6M5FSs1Wvc3WlRMOkuMjpV5R7/ps1fdomIUqTmjVi4J4UcKIr2z3Ib7LNBV/x9xkiO8yjXP8ZmInHyPHx0aAon4zufwv4mMjSB2/HlV19RDfZWjVi4J4UcKIZ06a6EC8KIgXhTpeFMSLgnhREC8K4kVBvCiIFwXxoiBeFMSLgnhREC8K4kVRF3/MQUbxheqC+HbSdh7Et5O28yC+nbSdR1r8Ea/19u4VYGnxGTn+xI9b2/bBQPxJH7e27YOB+JM+bm3bBwPxJ33c2rbQNogXBfGiIF4UxIuCeFEQLwriRWksnmHL46SpeAYxjpSm4hm2PFLI8aI0ruOZhSpOaNWLgnhR6M6JQuNOFLpzopDjRWmhO9e7R9B7Ca16URAvSojGnS3tK2ahRHyXCSDeNejXXx+/LZyRAOLXVzd056KjsfjJ4O13Nsdf0Z2LiuaNu3SWDLMVl2wjg1a9KIgXJYx45qSJDsSLgnhRqONFQbwoiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFkRbf/SNsD8SLgnhREC+Krnjx8Tcbi4952PLuH2F7NBUf9SDG3T/C9ggwzl3p72O2PTvdP8L2IMeL0riOZxaqONFt1YuDeFGku3PKSDfulJHuzilDjhelhe4cs1DFAK16URAvSoDu3DSdMQtVdIRo3C2mzEkTHQG6c+nrOd256Ghc1Jvsvhqb7tzwhG3hfDRv3C1c1+3QO+I7Da16URAvShjxzEkTHYgXBfGiUMeLgnhREC8K4lVI7vznPamb7AnOC+JFQbwoiBek4jFIxKtAjhcF8aIgXhTEgwXxoiBeFMSLgnhREC8K4kVBvCiIF6VN8dBl2hPfXqjg0Tp9cGf5qojvWzTEtxiuy9EQ32K4LkdDfIvhuhwN8S2G63I0xLcYrsvRHl48xATiRUG8KIgXBfGiIF4UxIuCeFEQLwriRQklfjOpmsrgaOwkd9NttABB3VxKgcKls2QwDxbNfFU7z0+oaE8OYt0dMpB4+/suKwa4PpLN83m2fjzPo4UIujTnUahwdgD3y5tA0exXXQaLtrInUTnWPSEDibfTGLiTrhluUPzFNI8WIOj62ctpFihcPlVDoGh2xg8TI0y0xeBHs3E51j0hA4l3X8OcwwEwYfJozYOmr9+a8z5QuPXV97aoDxQtz/GhvqpVXI51T8hA4u10hGHEp7NxEa150OXYFniBwq1H7hwKdXC+Cg4VzYovx7onZNdy/GYyzkJlKhsnDZnjj8hQ90d7PM9Wj65jz/GB6niXq4JVo6ZlZxmHquO/cb9koGh5hgz1VddnquNtAR2gVe+9F9FCBLU5PlS4xdSXIUGi5Tk+1LFZxeVY94TsVj/eZ9FpR/vxZvuAPe9VEvSqwJn68RAbiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhTEi4J4URAvCuJFQbwoiBcF8aIgXhRl8buHjysfQ05n03SWjFfu8c/egfhbMeJNivXjt28+vmj+xkDXkBG/mdinmf0T0vYtuGTqlv172VawW7ef/OLlX8w2P159enOTZYsg7w10CBXx+Tt0C/di3nrk/3py7d7LNtbNH7+uSG8TJjbHbybfWvGbFz/3K9uriPfFun2tyL5W9uQ61535lfk/dmW/TeiLenMOJMnYvusxPt/Rt4CM+Cubmd2LRq9L4o3WR4fi/UdefPrm42TqXnnqEzLiq3P8ZjItivpbcvxqmL6xNcTiVa+qeBnx7nXpJ9eLonLf1/14fiB+r45/blr19qXjT697leVVxJdb9V5yOnt0vUxM6316KN704P16Px5TMb5Cf5ARfzrpmz4JL0B8CZu9E//+cs9BvCiIFwXxovROvGmOWypa4Ls2u0nzm+NHGrK36jI3Ek4f6J347Na7bqXrcicMMZVvgvjOkl+lc132zYu/FW10NyKYXWn+lyRuHKNy7/7Zy0c/5ffodmu2oXxSI/7VXop4b9r1V7y/SLeZXN6snD232ova5vgv7tlNs+IeXZ7Oj76W7a732X/4pTx8tDfteis+vyxvL8an/mJrfhd2dzOu+gp+OV1W/jzzRb0fZ9kNRxvrTbveis9vxLlBPRfTRZIM3T0Zd3VmJ77inl1WSpeVPze8mxf37ewJFe1Nu96KL3K8Eb+X418UJu/J8dt0WVaR400NUeT4aG/a9Vb8to4fFndXdjVzqY7/8p5dOZ0LWK7jh/spor1p11/xeav++e+/aNUP5sWduazynl05ndty93nmWvX5UKR2JNpob9r1Ufw+gWZP6B+IF6Xv4uEWEC/K/wFDtkut/eJHZAAAAABJRU5ErkJggg==" /></p>
 </div>
 <div id="what-were-the-characteristics-of-one-of-the-visual-containers-in-the-first-report-of-the-sample" class="section level3">
@@ -841,34 +910,44 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="data" class="section level2">
 <h2>Data</h2>
 <p>Given that data wasn’t identified elsewhere, ‘DataModel’ was the likely place that data was held. The file started with `STREAM_STORAGE_SIGNATURE_)!@#$%^&amp;*&quot;, which was consistent with a <a href="https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-xldm/8c62e8ce-f605-488d-81e9-4ecdb7686a52">[MS-XLDM]: Spreadsheet Data Model File Format</a>.</p>
-<p><code>pbixr</code> did not include a function to get data by reading ‘DataModel’. However, it did include a function, <code>f_query_datamodel</code>, to access data via a local instance of ‘Microsoft’ ‘Analysis Services’. <code>f_get_connections</code> was used to identify the port of the ‘Analysis Services’ connection. <a href="https://web.archive.org/web/20180819200620/http://biinsight.com/connect-to-power-bi-desktop-model-from-excel-and-ssms/">This document</a> was considered helpful. <code>f_query_datamodel</code> and <code>f_get_connections</code> required <a href="https://en.wikipedia.org/wiki/PowerShell">‘Microsoft’ ‘PowerShell’</a>.</p>
+<p><code>pbixr</code> did not include a function to get data by reading ‘DataModel’. However, it did include a function, <code>f_query_datamodel</code>, to access data via a local instance of ‘Microsoft’ ‘Analysis Services’. <code>f_get_connections</code> was used to identify the port of the ‘Analysis Services’ connection. <a href="https://web.archive.org/web/20180819200620/http://biinsight.com/connect-to-power-bi-desktop-model-from-excel-and-ssms/">This document</a> was considered helpful. <code>f_query_datamodel</code> and <code>f_get_connections</code> required <a href="https://en.wikipedia.org/wiki/PowerShell">‘Microsoft’ ‘PowerShell’</a>. <code>f_query_datamodel</code> could be used to send ‘DAX’ and ‘Multidimensional Expressions’ queries (<a href="https://docs.microsoft.com/en-us/analysis-services/multidimensional-models/mdx/mdx-query-the-basic-query">‘MDX’</a>).</p>
+<p>Two string-escape issues required consideration when sending a query via ‘PowerShell’:</p>
+<ol style="list-style-type: decimal">
+<li><p>Dollar signs were escaped with a backtick (i.e. ‘$’ becomes ‘`$’)</p></li>
+<li><p>Double quotes were escaped with three backslashes and a double quote (i.e. ‘&quot;’ becomes ‘\\\&quot;’).</p></li>
+</ol>
+<p>As a result, subtle differences could be observed between queries sent from <code>pbixr</code> and other software, like ‘DaxStudio’.</p>
 <div id="what-dax-formulas-were-used-in-the-sample" class="section level3">
 <h3>What DAX formulas were used in the sample?</h3>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>connections_open &lt;-<span class="st"> </span><span class="kw">f_get_connections</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">pbix =</span> <span class="kw">gsub</span>(<span class="st">&quot; </span><span class="ch">\\</span><span class="st">[Read-Only</span><span class="ch">\\</span><span class="st">]&quot;</span>, </span>
-<span id="cb17-2"><a href="#cb17-2"></a>    <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot; - Power BI Desktop&quot;</span>, <span class="st">&quot;&quot;</span>, pbix_name))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(pbix <span class="op">==</span><span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;[.]pbix&quot;</span>, </span>
-<span id="cb17-3"><a href="#cb17-3"></a>    <span class="st">&quot;&quot;</span>, <span class="kw">basename</span>(path_file_sample)))</span>
-<span id="cb17-4"><a href="#cb17-4"></a>correct_port &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(connections_open<span class="op">$</span>ports[<span class="dv">1</span>])</span>
-<span id="cb17-5"><a href="#cb17-5"></a>connection_db &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Provider=MSOLAP.8;Data Source=localhost:&quot;</span>, correct_port, </span>
-<span id="cb17-6"><a href="#cb17-6"></a>    <span class="st">&quot;;MDX Compatibility=1&quot;</span>)</span>
-<span id="cb17-7"><a href="#cb17-7"></a><span class="co"># Expression to get the DAX queries</span></span>
-<span id="cb17-8"><a href="#cb17-8"></a>sql_measures &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select MEASURE_NAME, EXPRESSION, MEASUREGROUP_NAME &quot;</span>, <span class="st">&quot;from $SYSTEM.MDSCHEMA_MEASURES&quot;</span>)</span>
-<span id="cb17-9"><a href="#cb17-9"></a><span class="co"># Query the analysis service</span></span>
-<span id="cb17-10"><a href="#cb17-10"></a>get_dax &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_measures, connection_db)</span>
-<span id="cb17-11"><a href="#cb17-11"></a><span class="co"># Display a result</span></span>
-<span id="cb17-12"><a href="#cb17-12"></a>t_data &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">tail</span>(get_dax, <span class="dv">1</span>))</span>
-<span id="cb17-13"><a href="#cb17-13"></a><span class="kw">colnames</span>(t_data) &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
-<span id="cb17-14"><a href="#cb17-14"></a><span class="co"># To improve display of the DAX with kable, I removed new lines and tabs that</span></span>
-<span id="cb17-15"><a href="#cb17-15"></a><span class="co"># occured in the DAX</span></span>
-<span id="cb17-16"><a href="#cb17-16"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">trimws</span>(<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">t&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">n&quot;</span>, <span class="st">&quot;&quot;</span>, t_data))))</span>
-<span id="cb17-17"><a href="#cb17-17"></a><span class="co">#&gt; Warning in kable_markdown(x</span></span>
-<span id="cb17-18"><a href="#cb17-18"></a><span class="co">#&gt; = structure(c(&quot;MEASURE_NAME&quot;,</span></span>
-<span id="cb17-19"><a href="#cb17-19"></a><span class="co">#&gt; &quot;EXPRESSION&quot;, : The table should have</span></span>
-<span id="cb17-20"><a href="#cb17-20"></a><span class="co">#&gt; a header (column names)</span></span></code></pre></div>
+<p>A MDX query was executed to bring back a table holding DAX measure formulas.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>connections_open &lt;-<span class="st"> </span><span class="kw">f_get_connections</span>()</span>
+<span id="cb17-2"><a href="#cb17-2"></a>correct_port &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(connections_open<span class="op">$</span>ports[<span class="dv">1</span>])</span>
+<span id="cb17-3"><a href="#cb17-3"></a>connection_db &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Provider=MSOLAP.8;Data Source=localhost:&quot;</span>,</span>
+<span id="cb17-4"><a href="#cb17-4"></a>correct_port, <span class="st">&quot;;MDX Compatibility=1&quot;</span>)</span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="co"># Expression to get the DAX queries</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="co"># Note the backtick before the dollar sign. This was</span></span>
+<span id="cb17-7"><a href="#cb17-7"></a><span class="co"># added to escape the dollar sign in PowerShell.</span></span>
+<span id="cb17-8"><a href="#cb17-8"></a>sql_measures &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select MEASURE_NAME, EXPRESSION, MEASUREGROUP_NAME &quot;</span>,</span>
+<span id="cb17-9"><a href="#cb17-9"></a><span class="st">&quot;from `$SYSTEM.MDSCHEMA_MEASURES&quot;</span>)</span>
+<span id="cb17-10"><a href="#cb17-10"></a><span class="co"># Query the analysis service</span></span>
+<span id="cb17-11"><a href="#cb17-11"></a>get_dax &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_measures, connection_db)</span>
+<span id="cb17-12"><a href="#cb17-12"></a><span class="co"># Display a result sample</span></span>
+<span id="cb17-13"><a href="#cb17-13"></a>t_data &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">tail</span>(get_dax, <span class="dv">1</span>))</span>
+<span id="cb17-14"><a href="#cb17-14"></a><span class="kw">colnames</span>(t_data) &lt;-<span class="st"> &quot;value&quot;</span></span>
+<span id="cb17-15"><a href="#cb17-15"></a><span class="co"># To improve display of the DAX with kable, I removed new lines and</span></span>
+<span id="cb17-16"><a href="#cb17-16"></a><span class="co"># tabs that occured in the DAX</span></span>
+<span id="cb17-17"><a href="#cb17-17"></a>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">trimws</span>(<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">t&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">n&quot;</span>, <span class="st">&quot;&quot;</span>, t_data))), )</span></code></pre></div>
 <table>
 <colgroup>
 <col width="6%"></col>
 <col width="93%"></col>
 </colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">value</th>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
 <td align="left">MEASURE_NAME</td>
@@ -884,61 +963,550 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
+<p>The query above did not include all DAX in the sample. To get more DAX, including DAX for calculated tables, a different query was used.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>sql_measures &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;SELECT * From `$SYSTEM.DISCOVER_CALC_DEPENDENCY&quot;</span>)</span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="co"># Query the analysis service</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="co"># For presentation, I have chosen a few columns and rows</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a>get_allDax &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_measures, connection_db) <span class="op">%&gt;%</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="st">  </span><span class="kw">select</span>(OBJECT_TYPE, OBJECT, EXPRESSION) <span class="op">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="st">  </span><span class="kw">group_by</span>(OBJECT_TYPE) <span class="op">%&gt;%</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">grepl</span>(<span class="st">&quot;-&quot;</span>, OBJECT)) <span class="op">%&gt;%</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="st">  </span><span class="kw">filter</span>(<span class="kw">nchar</span>(EXPRESSION) <span class="op">&gt;</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></span>
+<span id="cb18-9"><a href="#cb18-9"></a><span class="st">  </span><span class="kw">unique</span>() <span class="op">%&gt;%</span></span>
+<span id="cb18-10"><a href="#cb18-10"></a><span class="st">  </span><span class="kw">slice</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span></span>
+<span id="cb18-11"><a href="#cb18-11"></a><span class="st">  </span><span class="kw">ungroup</span>()</span>
+<span id="cb18-12"><a href="#cb18-12"></a><span class="co"># The second row is a CALC_TABLE, which didn&#39;t print nicely</span></span>
+<span id="cb18-13"><a href="#cb18-13"></a><span class="co"># with kable</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a>get_allDax <span class="op">%&gt;%</span></span>
+<span id="cb18-15"><a href="#cb18-15"></a><span class="st">  </span><span class="kw">slice</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>) <span class="op">%&gt;%</span></span>
+<span id="cb18-16"><a href="#cb18-16"></a><span class="st">  </span>kable</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">OBJECT_TYPE</th>
+<th align="left">OBJECT</th>
+<th align="left">EXPRESSION</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CALC_COLUMN</td>
+<td align="left">Year</td>
+<td align="left">YEAR([Date])</td>
+</tr>
+<tr class="even">
+<td align="left">MEASURE</td>
+<td align="left">Avg Rating</td>
+<td align="left">AVERAGE(‘TopMovies’[imdbRating])</td>
+</tr>
+<tr class="odd">
+<td align="left">ROWS_ALLOWED</td>
+<td align="left">Germany Only</td>
+<td align="left">[Country] = “Germany”</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="how-were-the-tables-linked-in-the-sample" class="section level3">
-<h3>How were the tables linked in the sample?</h3>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Get relationships</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a>sql_relationships &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select FromTableID, FromColumnID, ToTableID,&quot;</span>, <span class="st">&quot; ToColumnID  from $SYSTEM.TMSCHEMA_RELATIONSHIPS&quot;</span>)</span>
-<span id="cb18-3"><a href="#cb18-3"></a>get_relationships &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_relationships, connection_db)</span>
-<span id="cb18-4"><a href="#cb18-4"></a></span>
-<span id="cb18-5"><a href="#cb18-5"></a><span class="co"># Get names of columns</span></span>
-<span id="cb18-6"><a href="#cb18-6"></a>sql_columns &lt;-<span class="st"> &quot;select * from $SYSTEM.TMSCHEMA_COLUMNS&quot;</span></span>
-<span id="cb18-7"><a href="#cb18-7"></a>get_columns &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_columns, connection_db) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">ColumnName =</span> <span class="kw">ifelse</span>(<span class="kw">nchar</span>(<span class="kw">as.character</span>(ExplicitName)) <span class="op">==</span><span class="st"> </span></span>
-<span id="cb18-8"><a href="#cb18-8"></a><span class="st">    </span><span class="dv">0</span>, <span class="kw">as.character</span>(InferredName), <span class="kw">as.character</span>(ExplicitName))) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dt">ColumnID =</span> ID, </span>
-<span id="cb18-9"><a href="#cb18-9"></a>    ColumnName)</span>
-<span id="cb18-10"><a href="#cb18-10"></a></span>
-<span id="cb18-11"><a href="#cb18-11"></a><span class="co"># Get names of tables</span></span>
-<span id="cb18-12"><a href="#cb18-12"></a>sql_table &lt;-<span class="st"> &quot;select * from $SYSTEM.TMSCHEMA_TABLES&quot;</span></span>
-<span id="cb18-13"><a href="#cb18-13"></a>get_tables &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_table, connection_db) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dt">TableID =</span> ID, </span>
-<span id="cb18-14"><a href="#cb18-14"></a>    <span class="dt">TableName =</span> Name)</span>
-<span id="cb18-15"><a href="#cb18-15"></a></span>
-<span id="cb18-16"><a href="#cb18-16"></a><span class="co"># Merge things together</span></span>
-<span id="cb18-17"><a href="#cb18-17"></a>get_relationship_names &lt;-<span class="st"> </span>get_relationships <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">merge</span>(get_tables, <span class="dt">by.x =</span> <span class="st">&quot;FromTableID&quot;</span>, </span>
-<span id="cb18-18"><a href="#cb18-18"></a>    <span class="dt">by.y =</span> <span class="st">&quot;TableID&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="dt">FromTable =</span> TableName) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">merge</span>(get_tables, <span class="dt">by.x =</span> <span class="st">&quot;ToTableID&quot;</span>, </span>
-<span id="cb18-19"><a href="#cb18-19"></a>    <span class="dt">by.y =</span> <span class="st">&quot;TableID&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="dt">ToTable =</span> TableName) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">merge</span>(get_columns, <span class="dt">by.x =</span> <span class="st">&quot;FromColumnID&quot;</span>, </span>
-<span id="cb18-20"><a href="#cb18-20"></a>    <span class="dt">by.y =</span> <span class="st">&quot;ColumnID&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="dt">FromColumn =</span> ColumnName) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">merge</span>(get_columns, </span>
-<span id="cb18-21"><a href="#cb18-21"></a>    <span class="dt">by.x =</span> <span class="st">&quot;ToColumnID&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;ColumnID&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="dt">ToColumn =</span> ColumnName) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb18-22"><a href="#cb18-22"></a><span class="st">    </span><span class="kw">select</span>(FromTable, ToTable, FromColumn, ToColumn)</span>
-<span id="cb18-23"><a href="#cb18-23"></a></span>
-<span id="cb18-24"><a href="#cb18-24"></a><span class="co"># Make things all characters drop table with long name. Doing this just for</span></span>
-<span id="cb18-25"><a href="#cb18-25"></a><span class="co"># display purposes here.</span></span>
-<span id="cb18-26"><a href="#cb18-26"></a>get_relationship_names &lt;-<span class="st"> </span>get_relationship_names[<span class="op">-</span><span class="dv">5</span>, ] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">FromTable =</span> <span class="kw">as.character</span>(FromTable)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb18-27"><a href="#cb18-27"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">ToTable =</span> <span class="kw">as.character</span>(ToTable))</span>
-<span id="cb18-28"><a href="#cb18-28"></a></span>
-<span id="cb18-29"><a href="#cb18-29"></a><span class="co"># Plot the results with igraph</span></span>
-<span id="cb18-30"><a href="#cb18-30"></a>c_list &lt;-<span class="st"> </span><span class="kw">list</span>()</span>
-<span id="cb18-31"><a href="#cb18-31"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(get_relationship_names)) {</span>
-<span id="cb18-32"><a href="#cb18-32"></a>    c_list[[i]] &lt;-<span class="st"> </span>get_relationship_names[i, <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>]</span>
-<span id="cb18-33"><a href="#cb18-33"></a>}</span>
-<span id="cb18-34"><a href="#cb18-34"></a>ed &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="kw">unlist</span>(c_list))</span>
-<span id="cb18-35"><a href="#cb18-35"></a><span class="co"># Use igraph, ggraph, ggplo2 to show preliminary example of data model</span></span>
-<span id="cb18-36"><a href="#cb18-36"></a>g1 &lt;-<span class="st"> </span>igraph<span class="op">::</span><span class="kw">graph</span>(<span class="dt">edges =</span> ed, <span class="dt">directed =</span> F)</span>
-<span id="cb18-37"><a href="#cb18-37"></a>ggraph<span class="op">::</span><span class="kw">ggraph</span>(g1, <span class="dt">layout =</span> <span class="st">&quot;stress&quot;</span>) <span class="op">+</span><span class="st"> </span>ggraph<span class="op">::</span><span class="kw">geom_edge_link</span>() <span class="op">+</span><span class="st"> </span>ggraph<span class="op">::</span><span class="kw">geom_node_point</span>(<span class="dt">size =</span> <span class="dv">2</span>, </span>
-<span id="cb18-38"><a href="#cb18-38"></a>    <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>) <span class="op">+</span><span class="st"> </span>ggraph<span class="op">::</span><span class="kw">geom_node_text</span>(ggplot2<span class="op">::</span><span class="kw">aes</span>(<span class="dt">label =</span> name)) <span class="op">+</span><span class="st"> </span>ggplot2<span class="op">::</span><span class="kw">theme</span>(<span class="dt">panel.background =</span> ggplot2<span class="op">::</span><span class="kw">element_blank</span>())</span></code></pre></div>
+<div id="what-dax-queries-were-triggered-after-data-were-filtered-in-a-report" class="section level3">
+<h3>What DAX queries were triggered after data were filtered in a report?</h3>
+<p>The first report, ‘Overview Top Movies’, contained a slicer, movie title, which triggered several queries. These queries were identified in a trace. A few websites provided some hints on using ‘SQL Server Profiler’ to record interactions with ‘Power BI’ (<a href="https://web.archive.org/web/20200426021721/https://blog.crossjoin.co.uk/2020/03/02/connecting-sql-server-profiler-to-power-bi-premium/">crossjoin</a> and <a href="https://web.archive.org/web/20190811124052/https://www.kasperonbi.com/how-to-turn-on-ssas-profiler-traces-in-power-bi-desktop/">kasperonbi</a>).</p>
+<p>Once the trace was initiated in ‘SQL Server Profiler’, ‘The Godfather’ was selected in the dropdown of the first report (‘Overview Top Movies’) in ‘Power BI’. This triggered a series of events to update the results in the report so that they were related to ‘The Godfather’. The queries underpinning these events were collected in the trace. The queries were extracted to file by switching to ‘SQL Server Profiler’ and selecting File &gt; Export &gt; Extract SQL Server Analysis Services Events &gt; Extract All Queries. The output looked like this:</p>
+<pre><code>DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  TOPN(
+    1002,
+    CALCULATETABLE(
+      DISTINCT(&#39;TopMovies&#39;[Poster]),
+      KEEPFILTERS(__DS0FilterTable)
+    ),
+    &#39;TopMovies&#39;[Poster],
+    1
+  )
+
+ORDER BY
+  &#39;TopMovies&#39;[Poster]
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  SUMMARIZECOLUMNS(
+    __DS0FilterTable,
+    &quot;SumRank&quot;, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Rank])))
+  )
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  TOPN(
+    101,
+    CALCULATETABLE(
+      SUMMARIZE(&#39;TopMovies&#39;, &#39;TopMovies&#39;[Released], &#39;TopMovies&#39;[Rated]),
+      KEEPFILTERS(__DS0FilterTable)
+    ),
+    &#39;TopMovies&#39;[Released],
+    1,
+    &#39;TopMovies&#39;[Rated],
+    1
+  )
+
+ORDER BY
+  &#39;TopMovies&#39;[Released], &#39;TopMovies&#39;[Rated]
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  SUMMARIZECOLUMNS(
+    __DS0FilterTable,
+    &quot;SumIMDBRating_Star&quot;, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[IMDBRating_Star])))
+  )
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  SUMMARIZECOLUMNS(
+    __DS0FilterTable,
+    &quot;SumimdbVotes&quot;, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[imdbVotes]))),
+    &quot;SumRuntime&quot;, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Runtime])))
+  )
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  SUMMARIZECOLUMNS(
+    __DS0FilterTable,
+    &quot;SumMetascore_Star&quot;, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Metascore_Star])))
+  )
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  TOPN(
+    101,
+    CALCULATETABLE(
+      SUMMARIZE(&#39;TopMovies&#39;, &#39;TopMovies&#39;[Title], &#39;TopMovies&#39;[Rank]),
+      KEEPFILTERS(__DS0FilterTable)
+    ),
+    &#39;TopMovies&#39;[Rank],
+    1,
+    &#39;TopMovies&#39;[Title],
+    1
+  )
+
+ORDER BY
+  &#39;TopMovies&#39;[Rank], &#39;TopMovies&#39;[Title]
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  TOPN(
+    1002,
+    CALCULATETABLE(
+      DISTINCT(&#39;TopMovies&#39;[Plot]),
+      KEEPFILTERS(__DS0FilterTable)
+    ),
+    &#39;TopMovies&#39;[Plot],
+    1
+  )
+
+ORDER BY
+  &#39;TopMovies&#39;[Plot]
+DEFINE VAR __DS0FilterTable =
+  TREATAS({&quot;The Godfather&quot;}, &#39;TopMovies&#39;[Title])
+
+EVALUATE
+  TOPN(
+    101,
+    CALCULATETABLE(
+      DISTINCT(&#39;TopMovies&#39;[Director]),
+      KEEPFILTERS(__DS0FilterTable)
+    ),
+    &#39;TopMovies&#39;[Director],
+    1
+  )
+
+ORDER BY
+  &#39;TopMovies&#39;[Director]</code></pre>
+<p>Two types of changes were made to this code to run it via <code>pbixr</code>:</p>
+<ol style="list-style-type: decimal">
+<li><p>Escape double quotes</p></li>
+<li><p>Remove duplicate define statements.</p></li>
+</ol>
+<p>The query was run from R, returning a list of results related to ‘The Godfather’.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>traceQuery &lt;-<span class="st"> </span><span class="kw">paste0</span>(</span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="st">&quot;DEFINE &quot;</span>,</span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="st">&quot;VAR __DS0FilterTable = &quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="st">&quot;  TREATAS({</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">The Godfather</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">}, &#39;TopMovies&#39;[Title])&quot;</span>,</span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="st">&quot;  TOPN(&quot;</span>,</span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="st">&quot;    1002,&quot;</span>,</span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="st">&quot;    CALCULATETABLE(&quot;</span>,</span>
+<span id="cb20-10"><a href="#cb20-10"></a><span class="st">&quot;      DISTINCT(&#39;TopMovies&#39;[Poster]),&quot;</span>,</span>
+<span id="cb20-11"><a href="#cb20-11"></a><span class="st">&quot;      KEEPFILTERS(__DS0FilterTable)&quot;</span>,</span>
+<span id="cb20-12"><a href="#cb20-12"></a><span class="st">&quot;    ),&quot;</span>,</span>
+<span id="cb20-13"><a href="#cb20-13"></a><span class="st">&quot;    &#39;TopMovies&#39;[Poster],&quot;</span>,</span>
+<span id="cb20-14"><a href="#cb20-14"></a><span class="st">&quot;    1&quot;</span>,</span>
+<span id="cb20-15"><a href="#cb20-15"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-16"><a href="#cb20-16"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-17"><a href="#cb20-17"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb20-18"><a href="#cb20-18"></a><span class="st">&quot;  &#39;TopMovies&#39;[Poster]&quot;</span>,</span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-20"><a href="#cb20-20"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-21"><a href="#cb20-21"></a><span class="st">&quot;  SUMMARIZECOLUMNS(&quot;</span>,</span>
+<span id="cb20-22"><a href="#cb20-22"></a><span class="st">&quot;    __DS0FilterTable,&quot;</span>,</span>
+<span id="cb20-23"><a href="#cb20-23"></a><span class="st">&quot;    </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">SumRank</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Rank])))&quot;</span>,</span>
+<span id="cb20-24"><a href="#cb20-24"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-25"><a href="#cb20-25"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-26"><a href="#cb20-26"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-27"><a href="#cb20-27"></a><span class="st">&quot;  TOPN(&quot;</span>,</span>
+<span id="cb20-28"><a href="#cb20-28"></a><span class="st">&quot;    101,&quot;</span>,</span>
+<span id="cb20-29"><a href="#cb20-29"></a><span class="st">&quot;    CALCULATETABLE(&quot;</span>,</span>
+<span id="cb20-30"><a href="#cb20-30"></a><span class="st">&quot;      SUMMARIZE(&#39;TopMovies&#39;, &#39;TopMovies&#39;[Released], &#39;TopMovies&#39;[Rated]),&quot;</span>,</span>
+<span id="cb20-31"><a href="#cb20-31"></a><span class="st">&quot;      KEEPFILTERS(__DS0FilterTable)&quot;</span>,</span>
+<span id="cb20-32"><a href="#cb20-32"></a><span class="st">&quot;    ),&quot;</span>,</span>
+<span id="cb20-33"><a href="#cb20-33"></a><span class="st">&quot;    &#39;TopMovies&#39;[Released],&quot;</span>,</span>
+<span id="cb20-34"><a href="#cb20-34"></a><span class="st">&quot;    1,&quot;</span>,</span>
+<span id="cb20-35"><a href="#cb20-35"></a><span class="st">&quot;    &#39;TopMovies&#39;[Rated],&quot;</span>,</span>
+<span id="cb20-36"><a href="#cb20-36"></a><span class="st">&quot;    1&quot;</span>,</span>
+<span id="cb20-37"><a href="#cb20-37"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-38"><a href="#cb20-38"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-39"><a href="#cb20-39"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb20-40"><a href="#cb20-40"></a><span class="st">&quot;  &#39;TopMovies&#39;[Released], &#39;TopMovies&#39;[Rated]&quot;</span>,</span>
+<span id="cb20-41"><a href="#cb20-41"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-42"><a href="#cb20-42"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-43"><a href="#cb20-43"></a><span class="st">&quot;  SUMMARIZECOLUMNS(&quot;</span>,</span>
+<span id="cb20-44"><a href="#cb20-44"></a><span class="st">&quot;    __DS0FilterTable,&quot;</span>,</span>
+<span id="cb20-45"><a href="#cb20-45"></a><span class="st">&quot;    </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">SumIMDBRating_Star</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[IMDBRating_Star])))&quot;</span>,</span>
+<span id="cb20-46"><a href="#cb20-46"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-47"><a href="#cb20-47"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-48"><a href="#cb20-48"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-49"><a href="#cb20-49"></a><span class="st">&quot;  SUMMARIZECOLUMNS(&quot;</span>,</span>
+<span id="cb20-50"><a href="#cb20-50"></a><span class="st">&quot;    __DS0FilterTable,&quot;</span>,</span>
+<span id="cb20-51"><a href="#cb20-51"></a><span class="st">&quot;    </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">SumimdbVotes</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[imdbVotes]))),&quot;</span>,</span>
+<span id="cb20-52"><a href="#cb20-52"></a><span class="st">&quot;    </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">SumRuntime</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Runtime])))&quot;</span>,</span>
+<span id="cb20-53"><a href="#cb20-53"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-54"><a href="#cb20-54"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-55"><a href="#cb20-55"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-56"><a href="#cb20-56"></a><span class="st">&quot;  SUMMARIZECOLUMNS(&quot;</span>,</span>
+<span id="cb20-57"><a href="#cb20-57"></a><span class="st">&quot;    __DS0FilterTable,&quot;</span>,</span>
+<span id="cb20-58"><a href="#cb20-58"></a><span class="st">&quot;    </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">SumMetascore_Star</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, IGNORE(CALCULATE(SUM(&#39;TopMovies&#39;[Metascore_Star])))&quot;</span>,</span>
+<span id="cb20-59"><a href="#cb20-59"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-60"><a href="#cb20-60"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-61"><a href="#cb20-61"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-62"><a href="#cb20-62"></a><span class="st">&quot;  TOPN(&quot;</span>,</span>
+<span id="cb20-63"><a href="#cb20-63"></a><span class="st">&quot;    101,&quot;</span>,</span>
+<span id="cb20-64"><a href="#cb20-64"></a><span class="st">&quot;    CALCULATETABLE(&quot;</span>,</span>
+<span id="cb20-65"><a href="#cb20-65"></a><span class="st">&quot;      SUMMARIZE(&#39;TopMovies&#39;, &#39;TopMovies&#39;[Title], &#39;TopMovies&#39;[Rank]),&quot;</span>,</span>
+<span id="cb20-66"><a href="#cb20-66"></a><span class="st">&quot;      KEEPFILTERS(__DS0FilterTable)&quot;</span>,</span>
+<span id="cb20-67"><a href="#cb20-67"></a><span class="st">&quot;    ),&quot;</span>,</span>
+<span id="cb20-68"><a href="#cb20-68"></a><span class="st">&quot;    &#39;TopMovies&#39;[Rank],&quot;</span>,</span>
+<span id="cb20-69"><a href="#cb20-69"></a><span class="st">&quot;    1,&quot;</span>,</span>
+<span id="cb20-70"><a href="#cb20-70"></a><span class="st">&quot;    &#39;TopMovies&#39;[Title],&quot;</span>,</span>
+<span id="cb20-71"><a href="#cb20-71"></a><span class="st">&quot;    1&quot;</span>,</span>
+<span id="cb20-72"><a href="#cb20-72"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-73"><a href="#cb20-73"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-74"><a href="#cb20-74"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb20-75"><a href="#cb20-75"></a><span class="st">&quot;  &#39;TopMovies&#39;[Rank], &#39;TopMovies&#39;[Title]&quot;</span>,</span>
+<span id="cb20-76"><a href="#cb20-76"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-77"><a href="#cb20-77"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-78"><a href="#cb20-78"></a><span class="st">&quot;  TOPN(&quot;</span>,</span>
+<span id="cb20-79"><a href="#cb20-79"></a><span class="st">&quot;    1002,&quot;</span>,</span>
+<span id="cb20-80"><a href="#cb20-80"></a><span class="st">&quot;    CALCULATETABLE(&quot;</span>,</span>
+<span id="cb20-81"><a href="#cb20-81"></a><span class="st">&quot;      DISTINCT(&#39;TopMovies&#39;[Plot]),&quot;</span>,</span>
+<span id="cb20-82"><a href="#cb20-82"></a><span class="st">&quot;      KEEPFILTERS(__DS0FilterTable)&quot;</span>,</span>
+<span id="cb20-83"><a href="#cb20-83"></a><span class="st">&quot;    ),&quot;</span>,</span>
+<span id="cb20-84"><a href="#cb20-84"></a><span class="st">&quot;    &#39;TopMovies&#39;[Plot],&quot;</span>,</span>
+<span id="cb20-85"><a href="#cb20-85"></a><span class="st">&quot;    1&quot;</span>,</span>
+<span id="cb20-86"><a href="#cb20-86"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-87"><a href="#cb20-87"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-88"><a href="#cb20-88"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb20-89"><a href="#cb20-89"></a><span class="st">&quot;  &#39;TopMovies&#39;[Plot]&quot;</span>,</span>
+<span id="cb20-90"><a href="#cb20-90"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-91"><a href="#cb20-91"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb20-92"><a href="#cb20-92"></a><span class="st">&quot;  TOPN(&quot;</span>,</span>
+<span id="cb20-93"><a href="#cb20-93"></a><span class="st">&quot;    101,&quot;</span>,</span>
+<span id="cb20-94"><a href="#cb20-94"></a><span class="st">&quot;    CALCULATETABLE(&quot;</span>,</span>
+<span id="cb20-95"><a href="#cb20-95"></a><span class="st">&quot;      DISTINCT(&#39;TopMovies&#39;[Director]),&quot;</span>,</span>
+<span id="cb20-96"><a href="#cb20-96"></a><span class="st">&quot;      KEEPFILTERS(__DS0FilterTable)&quot;</span>,</span>
+<span id="cb20-97"><a href="#cb20-97"></a><span class="st">&quot;    ),&quot;</span>,</span>
+<span id="cb20-98"><a href="#cb20-98"></a><span class="st">&quot;    &#39;TopMovies&#39;[Director],&quot;</span>,</span>
+<span id="cb20-99"><a href="#cb20-99"></a><span class="st">&quot;    1&quot;</span>,</span>
+<span id="cb20-100"><a href="#cb20-100"></a><span class="st">&quot;  )&quot;</span>,</span>
+<span id="cb20-101"><a href="#cb20-101"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb20-102"><a href="#cb20-102"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb20-103"><a href="#cb20-103"></a><span class="st">&quot;  &#39;TopMovies&#39;[Director]&quot;</span></span>
+<span id="cb20-104"><a href="#cb20-104"></a>)</span>
+<span id="cb20-105"><a href="#cb20-105"></a><span class="co"># Query the analysis service</span></span>
+<span id="cb20-106"><a href="#cb20-106"></a>getTrace &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(traceQuery, connection_db)</span>
+<span id="cb20-107"><a href="#cb20-107"></a><span class="co"># Show the list of results</span></span>
+<span id="cb20-108"><a href="#cb20-108"></a>getTrace</span>
+<span id="cb20-109"><a href="#cb20-109"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb20-110"><a href="#cb20-110"></a><span class="co">#&gt;                                                                                                                                 TopMovies.Poster.</span></span>
+<span id="cb20-111"><a href="#cb20-111"></a><span class="co">#&gt; 1 https://images-na.ssl-images-amazon.com/images/M/MV5BNTc0ZDk1YWItZDZiNi00NTdmLWE0MDctNTVhYTRhMDBmZjNjXkEyXkFqcGdeQXVyMjUzOTY1NTc@._V1_SX300.jpg</span></span>
+<span id="cb20-112"><a href="#cb20-112"></a><span class="co">#&gt; </span></span>
+<span id="cb20-113"><a href="#cb20-113"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb20-114"><a href="#cb20-114"></a><span class="co">#&gt;   X.SumRank.</span></span>
+<span id="cb20-115"><a href="#cb20-115"></a><span class="co">#&gt; 1          2</span></span>
+<span id="cb20-116"><a href="#cb20-116"></a><span class="co">#&gt; </span></span>
+<span id="cb20-117"><a href="#cb20-117"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb20-118"><a href="#cb20-118"></a><span class="co">#&gt;     TopMovies.Released.</span></span>
+<span id="cb20-119"><a href="#cb20-119"></a><span class="co">#&gt; 1 24-Mar-72 12:00:00 AM</span></span>
+<span id="cb20-120"><a href="#cb20-120"></a><span class="co">#&gt;   TopMovies.Rated.</span></span>
+<span id="cb20-121"><a href="#cb20-121"></a><span class="co">#&gt; 1                R</span></span>
+<span id="cb20-122"><a href="#cb20-122"></a><span class="co">#&gt; </span></span>
+<span id="cb20-123"><a href="#cb20-123"></a><span class="co">#&gt; [[4]]</span></span>
+<span id="cb20-124"><a href="#cb20-124"></a><span class="co">#&gt;   X.SumIMDBRating_Star.</span></span>
+<span id="cb20-125"><a href="#cb20-125"></a><span class="co">#&gt; 1                   4.6</span></span>
+<span id="cb20-126"><a href="#cb20-126"></a><span class="co">#&gt; </span></span>
+<span id="cb20-127"><a href="#cb20-127"></a><span class="co">#&gt; [[5]]</span></span>
+<span id="cb20-128"><a href="#cb20-128"></a><span class="co">#&gt;   X.SumimdbVotes.</span></span>
+<span id="cb20-129"><a href="#cb20-129"></a><span class="co">#&gt; 1         1186027</span></span>
+<span id="cb20-130"><a href="#cb20-130"></a><span class="co">#&gt;   X.SumRuntime.</span></span>
+<span id="cb20-131"><a href="#cb20-131"></a><span class="co">#&gt; 1           175</span></span>
+<span id="cb20-132"><a href="#cb20-132"></a><span class="co">#&gt; </span></span>
+<span id="cb20-133"><a href="#cb20-133"></a><span class="co">#&gt; [[6]]</span></span>
+<span id="cb20-134"><a href="#cb20-134"></a><span class="co">#&gt;   X.SumMetascore_Star.</span></span>
+<span id="cb20-135"><a href="#cb20-135"></a><span class="co">#&gt; 1                    5</span></span>
+<span id="cb20-136"><a href="#cb20-136"></a><span class="co">#&gt; </span></span>
+<span id="cb20-137"><a href="#cb20-137"></a><span class="co">#&gt; [[7]]</span></span>
+<span id="cb20-138"><a href="#cb20-138"></a><span class="co">#&gt;   TopMovies.Title.</span></span>
+<span id="cb20-139"><a href="#cb20-139"></a><span class="co">#&gt; 1    The Godfather</span></span>
+<span id="cb20-140"><a href="#cb20-140"></a><span class="co">#&gt;   TopMovies.Rank.</span></span>
+<span id="cb20-141"><a href="#cb20-141"></a><span class="co">#&gt; 1               2</span></span>
+<span id="cb20-142"><a href="#cb20-142"></a><span class="co">#&gt; </span></span>
+<span id="cb20-143"><a href="#cb20-143"></a><span class="co">#&gt; [[8]]</span></span>
+<span id="cb20-144"><a href="#cb20-144"></a><span class="co">#&gt;                                                                                                       TopMovies.Plot.</span></span>
+<span id="cb20-145"><a href="#cb20-145"></a><span class="co">#&gt; 1 The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.</span></span>
+<span id="cb20-146"><a href="#cb20-146"></a><span class="co">#&gt; </span></span>
+<span id="cb20-147"><a href="#cb20-147"></a><span class="co">#&gt; [[9]]</span></span>
+<span id="cb20-148"><a href="#cb20-148"></a><span class="co">#&gt;    TopMovies.Director.</span></span>
+<span id="cb20-149"><a href="#cb20-149"></a><span class="co">#&gt; 1 Francis Ford Coppola</span></span></code></pre></div>
+</div>
+<div id="what-queries-produce-visualization-data" class="section level3">
+<h3>What queries produce visualization data?</h3>
+<p>A trace was also used to identify queries underpinning visualisation data. After clicking on the ‘Grouping, Cond Form &amp; others’ report, the ‘FlightRecorderCurrent.trc’ trace was opened in ‘SQL Server Profiler’ (the location of the trace was identified with the query below).</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>queryTraces &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select * from `$SYSTEM.DISCOVER_TRACES&quot;</span>)</span>
+<span id="cb21-2"><a href="#cb21-2"></a>getTraces &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(queryTraces, connection_db)</span>
+<span id="cb21-3"><a href="#cb21-3"></a>getTraces</span></code></pre></div>
+<p>All queries were exported from the trace (just like the previous example), and the block with relevant queries was identified.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>queryViz &lt;-<span class="st"> </span><span class="kw">paste</span>(</span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="st">&quot;DEFINE&quot;</span>,</span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="st">&quot;  VAR __ApplyFilterSQDS0 = &quot;</span>,</span>
+<span id="cb22-4"><a href="#cb22-4"></a><span class="st">&quot;    TOPN(&quot;</span>,</span>
+<span id="cb22-5"><a href="#cb22-5"></a><span class="st">&quot;      5,&quot;</span>,</span>
+<span id="cb22-6"><a href="#cb22-6"></a><span class="st">&quot;      SUMMARIZECOLUMNS(&#39;Genre&#39;[Genre], </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">Avg_Runtime</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, &#39;TopMovies&#39;[Avg Runtime]),&quot;</span>,</span>
+<span id="cb22-7"><a href="#cb22-7"></a><span class="st">&quot;      [Avg_Runtime],&quot;</span>,</span>
+<span id="cb22-8"><a href="#cb22-8"></a><span class="st">&quot;      0&quot;</span>,</span>
+<span id="cb22-9"><a href="#cb22-9"></a><span class="st">&quot;    )&quot;</span>,</span>
+<span id="cb22-10"><a href="#cb22-10"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb22-11"><a href="#cb22-11"></a><span class="st">&quot;  VAR __DS0Core = &quot;</span>,</span>
+<span id="cb22-12"><a href="#cb22-12"></a><span class="st">&quot;    SUMMARIZECOLUMNS(&quot;</span>,</span>
+<span id="cb22-13"><a href="#cb22-13"></a><span class="st">&quot;      ROLLUPADDISSUBTOTAL(&#39;Genre&#39;[Genre], </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">IsGrandTotalRowTotal</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">),&quot;</span>,</span>
+<span id="cb22-14"><a href="#cb22-14"></a><span class="st">&quot;      __ApplyFilterSQDS0,&quot;</span>,</span>
+<span id="cb22-15"><a href="#cb22-15"></a><span class="st">&quot;      </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">MinRank</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, CALCULATE(MIN(&#39;TopMovies&#39;[Rank])),&quot;</span>,</span>
+<span id="cb22-16"><a href="#cb22-16"></a><span class="st">&quot;      </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">Avg_Rating</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, &#39;TopMovies&#39;[Avg Rating],&quot;</span>,</span>
+<span id="cb22-17"><a href="#cb22-17"></a><span class="st">&quot;      </span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">Avg_Runtime</span><span class="ch">\\\&quot;\\\&quot;</span><span class="st">, &#39;TopMovies&#39;[Avg Runtime]&quot;</span>,</span>
+<span id="cb22-18"><a href="#cb22-18"></a><span class="st">&quot;    )&quot;</span>,</span>
+<span id="cb22-19"><a href="#cb22-19"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb22-20"><a href="#cb22-20"></a><span class="st">&quot;  VAR __DS0CoreNoInstanceFiltersNoTotals = &quot;</span>,</span>
+<span id="cb22-21"><a href="#cb22-21"></a><span class="st">&quot;    FILTER(KEEPFILTERS(__DS0Core), [IsGrandTotalRowTotal] = FALSE)&quot;</span>,</span>
+<span id="cb22-22"><a href="#cb22-22"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb22-23"><a href="#cb22-23"></a><span class="st">&quot;EVALUATE&quot;</span>,</span>
+<span id="cb22-24"><a href="#cb22-24"></a><span class="st">&quot;  TOPN(502, __DS0Core, [IsGrandTotalRowTotal], 0, [MinRank], 1, &#39;Genre&#39;[Genre], 1)&quot;</span>,</span>
+<span id="cb22-25"><a href="#cb22-25"></a><span class="st">&quot;&quot;</span>,</span>
+<span id="cb22-26"><a href="#cb22-26"></a><span class="st">&quot;ORDER BY&quot;</span>,</span>
+<span id="cb22-27"><a href="#cb22-27"></a><span class="st">&quot;  [IsGrandTotalRowTotal] DESC, [MinRank], &#39;Genre&#39;[Genre]&quot;</span></span>
+<span id="cb22-28"><a href="#cb22-28"></a>)</span>
+<span id="cb22-29"><a href="#cb22-29"></a>getViz &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(queryViz, connection_db)</span>
+<span id="cb22-30"><a href="#cb22-30"></a><span class="kw">colnames</span>(getViz) &lt;-<span class="st"> </span><span class="kw">trimws</span>(<span class="kw">gsub</span>(<span class="st">&quot;[.]&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;X[.]&quot;</span>,<span class="st">&quot; &quot;</span>,</span>
+<span id="cb22-31"><a href="#cb22-31"></a><span class="kw">colnames</span>(getViz))))</span>
+<span id="cb22-32"><a href="#cb22-32"></a>showViz &lt;-<span class="st"> </span>getViz <span class="op">%&gt;%</span></span>
+<span id="cb22-33"><a href="#cb22-33"></a><span class="st">  </span><span class="kw">arrange</span>(IsGrandTotalRowTotal, <span class="kw">desc</span>(MinRank))</span>
+<span id="cb22-34"><a href="#cb22-34"></a><span class="kw">kable</span>(showViz)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Genre Genre</th>
+<th align="left">IsGrandTotalRowTotal</th>
+<th align="right">MinRank</th>
+<th align="right">Avg_Rating</th>
+<th align="right">Avg_Runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Sport</td>
+<td align="left">False</td>
+<td align="right">121</td>
+<td align="right">8.220000</td>
+<td align="right">134.8000</td>
+</tr>
+<tr class="even">
+<td align="left">Music</td>
+<td align="left">False</td>
+<td align="right">45</td>
+<td align="right">8.500000</td>
+<td align="right">136.0000</td>
+</tr>
+<tr class="odd">
+<td align="left">Western</td>
+<td align="left">False</td>
+<td align="right">9</td>
+<td align="right">8.483333</td>
+<td align="right">148.3333</td>
+</tr>
+<tr class="even">
+<td align="left">Biography</td>
+<td align="left">False</td>
+<td align="right">6</td>
+<td align="right">8.276000</td>
+<td align="right">147.1200</td>
+</tr>
+<tr class="odd">
+<td align="left">History</td>
+<td align="left">False</td>
+<td align="right">6</td>
+<td align="right">8.285000</td>
+<td align="right">162.8000</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">True</td>
+<td align="right">6</td>
+<td align="right">8.293878</td>
+<td align="right">150.2653</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="how-were-the-data-linked-in-the-sample" class="section level3">
+<h3>How were the data linked in the sample?</h3>
+<p>The model underpinning the data was identified with several queries.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="co"># Get relationships</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>sql_relationships &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select FromTableID, FromColumnID, ToTableID,&quot;</span>,</span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="st">&quot; ToColumnID  from `$SYSTEM.TMSCHEMA_RELATIONSHIPS&quot;</span>)</span>
+<span id="cb23-4"><a href="#cb23-4"></a>get_relationships &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_relationships, connection_db)</span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a><span class="co"># Get names of columns</span></span>
+<span id="cb23-7"><a href="#cb23-7"></a>sql_columns &lt;-<span class="st"> &quot;select * from `$SYSTEM.TMSCHEMA_COLUMNS&quot;</span></span>
+<span id="cb23-8"><a href="#cb23-8"></a>get_columns &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_columns, connection_db) <span class="op">%&gt;%</span></span>
+<span id="cb23-9"><a href="#cb23-9"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ColumnName =</span> <span class="kw">ifelse</span>(<span class="kw">nchar</span>(<span class="kw">as.character</span>(ExplicitName)) <span class="op">==</span><span class="st"> </span><span class="dv">0</span>,</span>
+<span id="cb23-10"><a href="#cb23-10"></a>  <span class="kw">as.character</span>(InferredName), <span class="kw">as.character</span>(ExplicitName))) <span class="op">%&gt;%</span></span>
+<span id="cb23-11"><a href="#cb23-11"></a><span class="st">   </span><span class="kw">select</span>(<span class="dt">ColumnID =</span> ID, ColumnName)</span>
+<span id="cb23-12"><a href="#cb23-12"></a></span>
+<span id="cb23-13"><a href="#cb23-13"></a><span class="co"># Get names of tables</span></span>
+<span id="cb23-14"><a href="#cb23-14"></a>sql_table &lt;-<span class="st"> &quot;select * from `$SYSTEM.TMSCHEMA_TABLES&quot;</span></span>
+<span id="cb23-15"><a href="#cb23-15"></a>get_tables &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(sql_table, connection_db) <span class="op">%&gt;%</span></span>
+<span id="cb23-16"><a href="#cb23-16"></a><span class="st">  </span><span class="kw">select</span>(<span class="dt">TableID =</span> ID, <span class="dt">TableName =</span> Name)</span>
+<span id="cb23-17"><a href="#cb23-17"></a></span>
+<span id="cb23-18"><a href="#cb23-18"></a><span class="co"># Merge things together</span></span>
+<span id="cb23-19"><a href="#cb23-19"></a>get_relationship_names &lt;-<span class="st"> </span>get_relationships <span class="op">%&gt;%</span></span>
+<span id="cb23-20"><a href="#cb23-20"></a><span class="st">  </span><span class="kw">merge</span>(get_tables, <span class="dt">by.x =</span> <span class="st">&quot;FromTableID&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;TableID&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-21"><a href="#cb23-21"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">FromTable =</span> TableName) <span class="op">%&gt;%</span></span>
+<span id="cb23-22"><a href="#cb23-22"></a><span class="st">  </span><span class="kw">merge</span>(get_tables, <span class="dt">by.x =</span> <span class="st">&quot;ToTableID&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;TableID&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-23"><a href="#cb23-23"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">ToTable =</span> TableName) <span class="op">%&gt;%</span></span>
+<span id="cb23-24"><a href="#cb23-24"></a><span class="st">  </span><span class="kw">merge</span>(get_columns, <span class="dt">by.x =</span> <span class="st">&quot;FromColumnID&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;ColumnID&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-25"><a href="#cb23-25"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">FromColumn =</span> ColumnName) <span class="op">%&gt;%</span></span>
+<span id="cb23-26"><a href="#cb23-26"></a><span class="st">  </span><span class="kw">merge</span>(get_columns, <span class="dt">by.x =</span> <span class="st">&quot;ToColumnID&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;ColumnID&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb23-27"><a href="#cb23-27"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">ToColumn =</span> ColumnName) <span class="op">%&gt;%</span></span>
+<span id="cb23-28"><a href="#cb23-28"></a><span class="st">  </span><span class="kw">select</span>(FromTable, ToTable, FromColumn, ToColumn)</span>
+<span id="cb23-29"><a href="#cb23-29"></a></span>
+<span id="cb23-30"><a href="#cb23-30"></a><span class="co"># Make things all characters</span></span>
+<span id="cb23-31"><a href="#cb23-31"></a><span class="co"># drop table with long name. Doing this just for display purposes here.</span></span>
+<span id="cb23-32"><a href="#cb23-32"></a>get_relationship_names &lt;-<span class="st"> </span>get_relationship_names[<span class="op">-</span><span class="dv">5</span>, ] <span class="op">%&gt;%</span></span>
+<span id="cb23-33"><a href="#cb23-33"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">FromTable =</span> <span class="kw">as.character</span>(FromTable)) <span class="op">%&gt;%</span></span>
+<span id="cb23-34"><a href="#cb23-34"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ToTable =</span> <span class="kw">as.character</span>(ToTable))</span>
+<span id="cb23-35"><a href="#cb23-35"></a></span>
+<span id="cb23-36"><a href="#cb23-36"></a><span class="co"># Plot the results with igraph</span></span>
+<span id="cb23-37"><a href="#cb23-37"></a>c_list &lt;-<span class="st"> </span><span class="kw">list</span>()</span>
+<span id="cb23-38"><a href="#cb23-38"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(get_relationship_names)) {</span>
+<span id="cb23-39"><a href="#cb23-39"></a>  c_list[[i]] &lt;-<span class="st"> </span>get_relationship_names[i, <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>]</span>
+<span id="cb23-40"><a href="#cb23-40"></a>}</span>
+<span id="cb23-41"><a href="#cb23-41"></a>ed &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="kw">unlist</span>(c_list))</span>
+<span id="cb23-42"><a href="#cb23-42"></a><span class="co"># Use igraph, ggraph, ggplo2 to show preliminary example of data model</span></span>
+<span id="cb23-43"><a href="#cb23-43"></a>g1 &lt;-<span class="st"> </span>igraph<span class="op">::</span><span class="kw">graph</span>(<span class="dt">edges=</span>ed, <span class="dt">directed=</span>F)</span>
+<span id="cb23-44"><a href="#cb23-44"></a>ggraph<span class="op">::</span><span class="kw">ggraph</span>(g1, <span class="dt">layout =</span> <span class="st">&quot;stress&quot;</span>) <span class="op">+</span></span>
+<span id="cb23-45"><a href="#cb23-45"></a><span class="st">  </span>ggraph<span class="op">::</span><span class="kw">geom_edge_link</span>() <span class="op">+</span></span>
+<span id="cb23-46"><a href="#cb23-46"></a><span class="st">  </span>ggraph<span class="op">::</span><span class="kw">geom_node_point</span>(<span class="dt">size =</span> <span class="dv">2</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>) <span class="op">+</span></span>
+<span id="cb23-47"><a href="#cb23-47"></a><span class="st">  </span>ggraph<span class="op">::</span><span class="kw">geom_node_text</span>(ggplot2<span class="op">::</span><span class="kw">aes</span>(<span class="dt">label =</span> name)) <span class="op">+</span></span>
+<span id="cb23-48"><a href="#cb23-48"></a><span class="st">  </span>ggplot2<span class="op">::</span><span class="kw">theme</span>(<span class="dt">panel.background =</span> ggplot2<span class="op">::</span><span class="kw">element_blank</span>())</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /></p>
 </div>
-<div id="what-did-one-of-the-tables-in-the-sample-look-like" class="section level3">
-<h3>What did one of the tables in the sample look like?</h3>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>query_topmovies &lt;-<span class="st"> &quot;evaluate TopMovies&quot;</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a>get_data_topmovies &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(query_topmovies, connection_db)</span>
-<span id="cb19-3"><a href="#cb19-3"></a><span class="co"># Display some results</span></span>
-<span id="cb19-4"><a href="#cb19-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(get_data_topmovies[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>])</span></code></pre></div>
+<div id="what-data-were-in-the-sample" class="section level3">
+<h3>What data were in the sample?</h3>
+<p>A DAX query was used to extract all data from the ‘Genre Bridge’ table.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="co"># Use single quotes because table name has a white space</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a>query_GenreBridge &lt;-<span class="st"> &quot;evaluate &#39;Genre Bridge&#39;&quot;</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a>get_data_GenreBridge &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(query_GenreBridge, connection_db)</span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="co"># Display some results</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a>knitr<span class="op">::</span><span class="kw">kable</span>(get_data_GenreBridge[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,])</span></code></pre></div>
 <table>
+<thead>
+<tr class="header">
+<th align="left">Genre.Bridge.Title.</th>
+<th align="left">Genre.Bridge.Genre.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">The Shawshank Redemption</td>
+<td align="left">Drama</td>
+</tr>
+<tr class="even">
+<td align="left">The Godfather</td>
+<td align="left">Drama</td>
+</tr>
+<tr class="odd">
+<td align="left">The Godfather: Part II</td>
+<td align="left">Drama</td>
+</tr>
+<tr class="even">
+<td align="left">The Dark Knight</td>
+<td align="left">Drama</td>
+</tr>
+<tr class="odd">
+<td align="left">12 Angry Men</td>
+<td align="left">Drama</td>
+</tr>
+</tbody>
+</table>
+<p>A DAX query was used to extract the first five rows of data for each table.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a><span class="co"># Build a query by loop through table names and get the first five rows</span></span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="co"># Put table names inside single quotes in case</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="co"># a white space occurs in the name</span></span>
+<span id="cb25-4"><a href="#cb25-4"></a>createQueriesPt1 &lt;-<span class="st"> </span><span class="kw">list</span>()</span>
+<span id="cb25-5"><a href="#cb25-5"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_along</span>(<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(get_tables))) {</span>
+<span id="cb25-6"><a href="#cb25-6"></a>  createQueriesPt1[[i]] &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;evaluate TOPNSKIP(5, 0, &#39;&quot;</span>,</span>
+<span id="cb25-7"><a href="#cb25-7"></a>  get_tables<span class="op">$</span>TableName[i], <span class="st">&quot;&#39;)&quot;</span>)</span>
+<span id="cb25-8"><a href="#cb25-8"></a>}</span>
+<span id="cb25-9"><a href="#cb25-9"></a>createQueriesPt2 &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="kw">unlist</span>(createQueriesPt1), <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>)</span>
+<span id="cb25-10"><a href="#cb25-10"></a>get_data_AllTablesAllData &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(createQueriesPt2, connection_db)</span>
+<span id="cb25-11"><a href="#cb25-11"></a><span class="co"># Display some results</span></span>
+<span id="cb25-12"><a href="#cb25-12"></a><span class="co"># For display purposes, I am going to get the first 5 columns of each</span></span>
+<span id="cb25-13"><a href="#cb25-13"></a><span class="co"># I am only going to display the second table</span></span>
+<span id="cb25-14"><a href="#cb25-14"></a>exampleAllTableResult &lt;-<span class="st"> </span><span class="kw">lapply</span>(get_data_AllTablesAllData, <span class="cf">function</span>(x) {</span>
+<span id="cb25-15"><a href="#cb25-15"></a>  colLength &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">ncol</span>(x) <span class="op">&gt;</span><span class="st"> </span><span class="dv">5</span>, <span class="dv">5</span>, <span class="kw">ncol</span>(x))</span>
+<span id="cb25-16"><a href="#cb25-16"></a>  x[,<span class="dv">1</span><span class="op">:</span>colLength]</span>
+<span id="cb25-17"><a href="#cb25-17"></a>  }</span>
+<span id="cb25-18"><a href="#cb25-18"></a>)[[<span class="dv">2</span>]]</span>
+<span id="cb25-19"><a href="#cb25-19"></a><span class="kw">kable</span>(exampleAllTableResult)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="7%"></col>
+<col width="23%"></col>
+<col width="7%"></col>
+<col width="32%"></col>
+<col width="28%"></col>
+</colgroup>
 <thead>
 <tr class="header">
 <th align="right">TopMovies.Rank.</th>
 <th align="left">TopMovies.Title.</th>
 <th align="right">TopMovies.Year.</th>
+<th align="left">TopMovies.Actors.</th>
+<th align="left">TopMovies.Awards.</th>
 </tr>
 </thead>
 <tbody>
@@ -946,16 +1514,68 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <td align="right">1</td>
 <td align="left">The Shawshank Redemption</td>
 <td align="right">1994</td>
+<td align="left">Tim Robbins, Morgan Freeman, Bob Gunton, William Sadler</td>
+<td align="left">Nominated for 7 Oscars. Another 19 wins &amp; 30 nominations.</td>
 </tr>
 <tr class="even">
 <td align="right">5</td>
 <td align="left">12 Angry Men</td>
 <td align="right">1957</td>
+<td align="left">Martin Balsam, John Fiedler, Lee J. Cobb, E.G. Marshall</td>
+<td align="left">Nominated for 3 Oscars. Another 16 wins &amp; 8 nominations.</td>
 </tr>
 <tr class="odd">
 <td align="right">12</td>
 <td align="left">Star Wars: Episode V - The Empire Strikes Back</td>
 <td align="right">1980</td>
+<td align="left">Mark Hamill, Harrison Ford, Carrie Fisher, Billy Dee Williams</td>
+<td align="left">Won 1 Oscar. Another 19 wins &amp; 18 nominations.</td>
+</tr>
+<tr class="even">
+<td align="right">13</td>
+<td align="left">Forrest Gump</td>
+<td align="right">1994</td>
+<td align="left">Tom Hanks, Rebecca Williams, Sally Field, Michael Conner Humphreys</td>
+<td align="left">Won 6 Oscars. Another 39 wins &amp; 65 nominations.</td>
+</tr>
+<tr class="odd">
+<td align="right">16</td>
+<td align="left">One Flew Over the Cuckoo’s Nest</td>
+<td align="right">1975</td>
+<td align="left">Michael Berryman, Peter Brocco, Dean R. Brooks, Alonzo Brown</td>
+<td align="left">Won 5 Oscars. Another 30 wins &amp; 13 nominations.</td>
+</tr>
+</tbody>
+</table>
+<p>An MDX query was used to get the first five movie objects.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>query_getTop5Movies &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;select top 5 [MEMBER_NAME] from &quot;</span>,</span>
+<span id="cb26-2"><a href="#cb26-2"></a>  <span class="st">&quot;`$System.MDSCHEMA_MEMBERS where [CUBE_NAME]=&#39;Model&#39; and &quot;</span>,</span>
+<span id="cb26-3"><a href="#cb26-3"></a>  <span class="st">&quot;[LEVEL_UNIQUE_NAME]=&#39;[TopMovies].[Title].[Title]&#39;&quot;</span></span>
+<span id="cb26-4"><a href="#cb26-4"></a>  )</span>
+<span id="cb26-5"><a href="#cb26-5"></a>get_data_getTop5Movies &lt;-<span class="st"> </span><span class="kw">f_query_datamodel</span>(query_getTop5Movies, connection_db)</span>
+<span id="cb26-6"><a href="#cb26-6"></a><span class="co"># Display some results</span></span>
+<span id="cb26-7"><a href="#cb26-7"></a>knitr<span class="op">::</span><span class="kw">kable</span>(get_data_getTop5Movies)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">MEMBER_NAME</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">The Shawshank Redemption</td>
+</tr>
+<tr class="even">
+<td align="left">The Godfather</td>
+</tr>
+<tr class="odd">
+<td align="left">The Godfather: Part II</td>
+</tr>
+<tr class="even">
+<td align="left">The Dark Knight</td>
+</tr>
+<tr class="odd">
+<td align="left">12 Angry Men</td>
 </tr>
 </tbody>
 </table>
@@ -968,22 +1588,24 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="how-was-the-size-of-the-sample-reduced" class="section level3">
 <h3>How was the size of the sample reduced?</h3>
 <p>The sample was unzipped with <code>f_unzip_pbix</code> and <code>f_clean_under_the_hood</code> was used to remove ‘DataModel’.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># Create a temporary, modified sample File</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a>path_file_sample_mod &lt;-<span class="st"> </span><span class="kw">file.path</span>(temp_dir, <span class="st">&quot;sample_modified.pbix&quot;</span>)</span>
-<span id="cb20-3"><a href="#cb20-3"></a><span class="cf">if</span> (<span class="kw">file.exists</span>(path_file_sample_mod)) {</span>
-<span id="cb20-4"><a href="#cb20-4"></a>    <span class="kw">file.remove</span>(path_file_sample_mod)</span>
-<span id="cb20-5"><a href="#cb20-5"></a>}</span>
-<span id="cb20-6"><a href="#cb20-6"></a><span class="co"># Directory</span></span>
-<span id="cb20-7"><a href="#cb20-7"></a>dir_file_sample_mod &lt;-<span class="st"> </span><span class="kw">file.path</span>(temp_dir, <span class="st">&quot;sample_modified&quot;</span>)</span>
-<span id="cb20-8"><a href="#cb20-8"></a><span class="cf">if</span> (<span class="kw">file.exists</span>(dir_file_sample_mod)) {</span>
-<span id="cb20-9"><a href="#cb20-9"></a>    <span class="kw">unlink</span>(dir_file_sample_mod, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb20-10"><a href="#cb20-10"></a>}</span>
-<span id="cb20-11"><a href="#cb20-11"></a></span>
-<span id="cb20-12"><a href="#cb20-12"></a><span class="kw">f_clean_under_the_hood</span>(path_file_sample, dir_file_sample_mod, path_file_sample_mod)</span>
-<span id="cb20-13"><a href="#cb20-13"></a><span class="kw">unlink</span>(dir_file_sample_mod, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb20-14"><a href="#cb20-14"></a></span>
-<span id="cb20-15"><a href="#cb20-15"></a>size_ori &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(<span class="kw">file.info</span>(path_file_sample)<span class="op">$</span>size, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
-<span id="cb20-16"><a href="#cb20-16"></a>size_mod &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(<span class="kw">file.info</span>(path_file_sample_mod)<span class="op">$</span>size, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co"># Create a temporary, modified sample</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a><span class="co"># File</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>path_file_sample_mod     &lt;-<span class="st"> </span><span class="kw">file.path</span>(temp_dir, <span class="st">&quot;sample_modified.pbix&quot;</span>)</span>
+<span id="cb27-4"><a href="#cb27-4"></a><span class="cf">if</span> (<span class="kw">file.exists</span>(path_file_sample_mod)) {</span>
+<span id="cb27-5"><a href="#cb27-5"></a>  <span class="kw">file.remove</span>(path_file_sample_mod)</span>
+<span id="cb27-6"><a href="#cb27-6"></a>}</span>
+<span id="cb27-7"><a href="#cb27-7"></a><span class="co"># Directory</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a>dir_file_sample_mod &lt;-<span class="st"> </span><span class="kw">file.path</span>(temp_dir, <span class="st">&quot;sample_modified&quot;</span>)</span>
+<span id="cb27-9"><a href="#cb27-9"></a><span class="cf">if</span> (<span class="kw">file.exists</span>(dir_file_sample_mod)) {</span>
+<span id="cb27-10"><a href="#cb27-10"></a>  <span class="kw">unlink</span>(dir_file_sample_mod, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb27-11"><a href="#cb27-11"></a>}</span>
+<span id="cb27-12"><a href="#cb27-12"></a></span>
+<span id="cb27-13"><a href="#cb27-13"></a><span class="kw">f_clean_under_the_hood</span>(path_file_sample, dir_file_sample_mod,</span>
+<span id="cb27-14"><a href="#cb27-14"></a>path_file_sample_mod)</span>
+<span id="cb27-15"><a href="#cb27-15"></a><span class="kw">unlink</span>(dir_file_sample_mod, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb27-16"><a href="#cb27-16"></a></span>
+<span id="cb27-17"><a href="#cb27-17"></a>size_ori &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(<span class="kw">file.info</span>(path_file_sample)<span class="op">$</span>size, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb27-18"><a href="#cb27-18"></a>size_mod &lt;-<span class="st"> </span><span class="kw">prettyNum</span>(<span class="kw">file.info</span>(path_file_sample_mod)<span class="op">$</span>size, <span class="dt">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span></code></pre></div>
 <p>With ‘DataModel’, the sample was 2,196,745 bytes. Without ‘DataModel’, the sample was 701,993 bytes.</p>
 <p>Have fun!</p>
 </div>
